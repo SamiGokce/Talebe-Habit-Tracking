@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: #FAF6F1;
+  color: #2A1F15;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background:
+    radial-gradient(at 12% 8%, rgba(201, 168, 120, 0.28) 0px, transparent 55%),
+    radial-gradient(at 88% 6%, rgba(184, 153, 104, 0.22) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(139, 155, 110, 0.16) 0px, transparent 55%),
+    linear-gradient(180deg, #FDFBF7 0%, #F4EDE3 100%);
+  background-attachment: fixed;
+}
+
+/* Liquid glass surfaces */
+.glass {
+  background: rgba(255, 252, 247, 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 8px 32px 0 rgba(93, 71, 50, 0.08),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
+}
+
+.glass-strong {
+  background: rgba(255, 252, 247, 0.78);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 12px 40px 0 rgba(93, 71, 50, 0.1),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
+}
+
+.glass-soft {
+  background: rgba(244, 237, 227, 0.5);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+/* Smooth tap feedback */
+.tap {
+  transition: transform 120ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms ease, background-color 200ms ease;
+}
+.tap:active {
+  transform: scale(0.96);
+}
+
+/* Hide number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 111, 71, 0.25);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 111, 71, 0.4);
+}
+
+/* Glow on done state */
+.done-glow {
+  box-shadow:
+    0 0 0 1px rgba(139, 155, 110, 0.4),
+    0 8px 24px -8px rgba(139, 155, 110, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+}
