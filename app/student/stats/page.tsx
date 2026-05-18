@@ -30,6 +30,7 @@ type Entry = {
   tahajjud: boolean;
   duha: boolean;
   evvabin: boolean;
+  cevsen: boolean;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;

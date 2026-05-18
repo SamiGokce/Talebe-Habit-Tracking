@@ -3,7 +3,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Trash2, Home, Trophy, BookOpen, Sparkles, Moon } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Trash2,
+  Home,
+  Trophy,
+  Target,
+  BookOpen,
+  Sparkles,
+  Moon,
+} from "lucide-react";
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
@@ -24,6 +34,7 @@ type Entry = {
   tahajjud: boolean;
   duha: boolean;
   evvabin: boolean;
+  cevsen: boolean;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -66,7 +77,9 @@ export default function MemberDetailPage() {
 
   const tabs = [
     { href: "/leader/dashboard", label: "Members", icon: <Home size={16} /> },
+    { href: "/leader/goals", label: "Goals", icon: <Target size={16} /> },
     { href: "/leader/contests", label: "Contests", icon: <Trophy size={16} /> },
+    { href: "/leader/reports", label: "Reports", icon: <Calendar size={16} /> },
   ];
 
   if (loading || !student) {
@@ -138,8 +151,8 @@ export default function MemberDetailPage() {
                 e.maghrib_cemaat,
                 e.isha_cemaat,
               ].filter(Boolean).length;
-              const optional = [e.tahajjud, e.duha, e.evvabin].filter(Boolean)
-                .length;
+              const optional = [e.tahajjud, e.duha, e.evvabin, e.cevsen]
+                .filter(Boolean).length;
               return (
                 <div
                   key={e.entry_date}

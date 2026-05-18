@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const rows = await sql`
-      SELECT id, code, name, leader_passphrase_hash
+      SELECT id, code, name, school_level, mentor_name, leader_passphrase_hash
       FROM groups WHERE code = ${normalized}
     `;
     if (rows.length === 0) {
@@ -30,6 +30,8 @@ export async function POST(req: Request) {
       id: string;
       code: string;
       name: string;
+      school_level: "middle_school" | "high_school" | "mixed";
+      mentor_name: string | null;
       leader_passphrase_hash: string;
     };
     const ok = await bcrypt.compare(passphrase, g.leader_passphrase_hash);
@@ -44,11 +46,19 @@ export async function POST(req: Request) {
       groupId: g.id,
       groupCode: g.code,
       groupName: g.name,
+      schoolLevel: g.school_level,
+      mentorName: g.mentor_name,
     });
 
     return NextResponse.json({
       ok: true,
-      group: { id: g.id, code: g.code, name: g.name },
+      group: {
+        id: g.id,
+        code: g.code,
+        name: g.name,
+        school_level: g.school_level,
+        mentor_name: g.mentor_name,
+      },
     });
   } catch (err) {
     console.error(err);

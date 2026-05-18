@@ -31,6 +31,7 @@ function emptyEntry(date: string) {
     tahajjud: false,
     duha: false,
     evvabin: false,
+    cevsen: false,
     quran_pages: 0,
     zikr_count: 0,
     book_pages: 0,
@@ -87,14 +88,14 @@ export async function PUT(req: Request) {
       fajr, fajr_cemaat, dhuhr, dhuhr_cemaat,
       asr, asr_cemaat, maghrib, maghrib_cemaat,
       isha, isha_cemaat,
-      tahajjud, duha, evvabin,
+      tahajjud, duha, evvabin, cevsen,
       quran_pages, zikr_count, book_pages
     ) VALUES (
       ${session.studentId}, ${date},
       ${bools.fajr}, ${bools.fajr_cemaat}, ${bools.dhuhr}, ${bools.dhuhr_cemaat},
       ${bools.asr}, ${bools.asr_cemaat}, ${bools.maghrib}, ${bools.maghrib_cemaat},
       ${bools.isha}, ${bools.isha_cemaat},
-      ${bools.tahajjud}, ${bools.duha}, ${bools.evvabin},
+      ${bools.tahajjud}, ${bools.duha}, ${bools.evvabin}, ${bools.cevsen},
       ${counts.quran_pages}, ${counts.zikr_count}, ${counts.book_pages}
     )
     ON CONFLICT (student_id, entry_date) DO UPDATE SET
@@ -103,7 +104,8 @@ export async function PUT(req: Request) {
       asr = EXCLUDED.asr, asr_cemaat = EXCLUDED.asr_cemaat,
       maghrib = EXCLUDED.maghrib, maghrib_cemaat = EXCLUDED.maghrib_cemaat,
       isha = EXCLUDED.isha, isha_cemaat = EXCLUDED.isha_cemaat,
-      tahajjud = EXCLUDED.tahajjud, duha = EXCLUDED.duha, evvabin = EXCLUDED.evvabin,
+      tahajjud = EXCLUDED.tahajjud, duha = EXCLUDED.duha,
+      evvabin = EXCLUDED.evvabin, cevsen = EXCLUDED.cevsen,
       quran_pages = EXCLUDED.quran_pages,
       zikr_count = EXCLUDED.zikr_count,
       book_pages = EXCLUDED.book_pages,

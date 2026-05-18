@@ -45,6 +45,25 @@ export async function GET(_req: Request, ctx: Ctx) {
       AND e.entry_date <= ${contest.end_date}
   `;
 
+  const goalEntries = await sql`
+    SELECT
+      ge.entry_date,
+      ge.completed,
+      ge.amount,
+      g.kind,
+      g.points,
+      s.id AS student_id,
+      s.display_name
+    FROM goal_entries ge
+    JOIN goals g ON g.id = ge.goal_id
+    JOIN students s ON s.id = ge.student_id
+    WHERE s.group_id = ${access.groupId}
+      AND ge.entry_date >= ${contest.start_date}
+      AND ge.entry_date <= ${contest.end_date}
+      AND g.active = TRUE
+      AND (g.student_id IS NULL OR g.student_id = s.id)
+  `;
+
   const totals = new Map<
     string,
     { student_id: string; display_name: string; points: number; days: number }
@@ -66,6 +85,28 @@ export async function GET(_req: Request, ctx: Ctx) {
         pts += score;
       }
     }
+    const t = totals.get(studentId) ?? {
+      student_id: studentId,
+      display_name: name,
+      points: 0,
+      days: 0,
+    };
+    t.points += pts;
+    totals.set(studentId, t);
+    const set = days.get(studentId) ?? new Set<string>();
+    set.add(String(row.entry_date));
+    days.set(studentId, set);
+  }
+  for (const row of goalEntries as any[]) {
+    const studentId = row.student_id as string;
+    const name = row.display_name as string;
+    const points = Number(row.points || 0);
+    const pts =
+      row.kind === "count"
+        ? points * Number(row.amount || 0)
+        : row.completed
+          ? points
+          : 0;
     const t = totals.get(studentId) ?? {
       student_id: studentId,
       display_name: name,

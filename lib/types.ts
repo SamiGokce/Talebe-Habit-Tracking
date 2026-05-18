@@ -2,6 +2,8 @@ export type Group = {
   id: string;
   code: string;
   name: string;
+  school_level: SchoolLevel;
+  mentor_name: string | null;
   created_at: string;
 };
 
@@ -9,8 +11,12 @@ export type Student = {
   id: string;
   group_id: string;
   display_name: string;
+  school_level: SchoolLevel | null;
   created_at: string;
 };
+
+export type AppRole = "talebe" | "mentor" | "uniteci";
+export type SchoolLevel = "middle_school" | "high_school" | "mixed";
 
 export type Entry = {
   id: string;
@@ -29,6 +35,7 @@ export type Entry = {
   tahajjud: boolean;
   duha: boolean;
   evvabin: boolean;
+  cevsen: boolean;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -55,7 +62,7 @@ export const PRAYER_KEYS = [
 ] as const;
 export type PrayerKey = (typeof PRAYER_KEYS)[number];
 
-export const OPTIONAL_PRAYER_KEYS = ["tahajjud", "duha", "evvabin"] as const;
+export const OPTIONAL_PRAYER_KEYS = ["tahajjud", "duha", "evvabin", "cevsen"] as const;
 export type OptionalPrayerKey = (typeof OPTIONAL_PRAYER_KEYS)[number];
 
 export const COUNT_KEYS = ["quran_pages", "zikr_count", "book_pages"] as const;
@@ -84,6 +91,7 @@ export const ALL_HABIT_KEYS: HabitKey[] = [
   "tahajjud",
   "duha",
   "evvabin",
+  "cevsen",
   "quran_pages",
   "zikr_count",
   "book_pages",
@@ -103,6 +111,7 @@ export const HABIT_LABELS: Record<HabitKey, string> = {
   tahajjud: "Tahajjud",
   duha: "Duha",
   evvabin: "Evvabin",
+  cevsen: "Cevsen",
   quran_pages: "Quran (pages)",
   zikr_count: "Zikr (count)",
   book_pages: "Book (pages)",
@@ -120,6 +129,7 @@ export const OPTIONAL_PRAYER_LABELS: Record<OptionalPrayerKey, string> = {
   tahajjud: "Tahajjud",
   duha: "Duha",
   evvabin: "Evvabin",
+  cevsen: "Cevsen",
 };
 
 export const DEFAULT_SCORING: Record<HabitKey, number> = {
@@ -136,7 +146,28 @@ export const DEFAULT_SCORING: Record<HabitKey, number> = {
   tahajjud: 10,
   duha: 5,
   evvabin: 5,
+  cevsen: 5,
   quran_pages: 1,
   zikr_count: 0,
   book_pages: 1,
+};
+
+export type GoalKind = "boolean" | "count";
+
+export type Goal = {
+  id: string;
+  group_id: string;
+  student_id: string | null;
+  title: string;
+  description: string | null;
+  kind: GoalKind;
+  unit: string | null;
+  created_by_role: AppRole;
+  points: number;
+  starts_on: string | null;
+  ends_on: string | null;
+  active: boolean;
+  created_at: string;
+  completed?: boolean;
+  amount?: number;
 };

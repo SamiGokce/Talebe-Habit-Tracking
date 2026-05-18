@@ -25,6 +25,8 @@ export type LeaderSession = {
   groupId: string;
   groupCode: string;
   groupName: string;
+  schoolLevel?: "middle_school" | "high_school" | "mixed";
+  mentorName?: string | null;
 };
 
 async function signToken(payload: Record<string, unknown>) {

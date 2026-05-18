@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Home, Trophy, X } from "lucide-react";
+import { Calendar, Plus, Home, Trophy, Target, X } from "lucide-react";
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
@@ -49,7 +49,9 @@ export default function LeaderContestsPage() {
 
   const tabs = [
     { href: "/leader/dashboard", label: "Members", icon: <Home size={16} /> },
+    { href: "/leader/goals", label: "Goals", icon: <Target size={16} /> },
     { href: "/leader/contests", label: "Contests", icon: <Trophy size={16} /> },
+    { href: "/leader/reports", label: "Reports", icon: <Calendar size={16} /> },
   ];
 
   const now = new Date().toISOString().slice(0, 10);

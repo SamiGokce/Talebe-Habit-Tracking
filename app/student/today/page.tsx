@@ -13,6 +13,8 @@ import {
   Calendar,
   Trophy,
   Home,
+  Plus,
+  X,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
@@ -20,6 +22,8 @@ import { PrayerRow } from "@/components/PrayerRow";
 import { HabitToggle } from "@/components/HabitToggle";
 import { Stepper } from "@/components/Stepper";
 import { TabBar } from "@/components/TabBar";
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
 
 type EntryState = {
   entry_date: string;
@@ -36,9 +40,21 @@ type EntryState = {
   tahajjud: boolean;
   duha: boolean;
   evvabin: boolean;
+  cevsen: boolean;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
+};
+
+type Goal = {
+  id: string;
+  title: string;
+  description: string | null;
+  kind: "boolean" | "count";
+  unit: string | null;
+  created_by_role: "talebe" | "mentor" | "uniteci";
+  completed: boolean;
+  amount: number;
 };
 
 type Me = {
@@ -57,12 +73,16 @@ export default function TodayPage() {
   const router = useRouter();
   const [me, setMe] = useState<Me["student"] | null>(null);
   const [entry, setEntry] = useState<EntryState | null>(null);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
     "idle"
   );
+  const [showGoalForm, setShowGoalForm] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const goalSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialLoad = useRef(true);
+  const initialGoalLoad = useRef(true);
 
   useEffect(() => {
     (async () => {
@@ -74,9 +94,14 @@ export default function TodayPage() {
       }
       setMe(meData.student);
 
-      const res = await fetch("/api/entries");
-      const data = await res.json();
-      setEntry(data.entry);
+      const [entryRes, goalsRes] = await Promise.all([
+        fetch("/api/entries"),
+        fetch("/api/goals"),
+      ]);
+      const entryData = await entryRes.json();
+      const goalsData = await goalsRes.json();
+      setEntry(entryData.entry);
+      setGoals(goalsData.goals || []);
       setLoading(false);
     })();
   }, [router]);
@@ -105,6 +130,39 @@ export default function TodayPage() {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, [entry]);
+
+  useEffect(() => {
+    if (!entry?.entry_date) return;
+    if (initialGoalLoad.current) {
+      initialGoalLoad.current = false;
+      return;
+    }
+    if (goalSaveTimer.current) clearTimeout(goalSaveTimer.current);
+    setSaveState("saving");
+    goalSaveTimer.current = setTimeout(async () => {
+      const res = await fetch("/api/goal-entries", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          entry_date: entry.entry_date,
+          goals: goals.map((g) => ({
+            goal_id: g.id,
+            completed: g.completed,
+            amount: g.amount,
+          })),
+        }),
+      });
+      if (res.ok) {
+        setSaveState("saved");
+        setTimeout(() => setSaveState("idle"), 1400);
+      } else {
+        setSaveState("idle");
+      }
+    }, 600);
+    return () => {
+      if (goalSaveTimer.current) clearTimeout(goalSaveTimer.current);
+    };
+  }, [goals, entry?.entry_date]);
 
   const set = <K extends keyof EntryState>(key: K, value: EntryState[K]) => {
     setEntry((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -146,11 +204,17 @@ export default function TodayPage() {
     const cemaat = PRAYERS.filter(
       (p) => entry[`${p.key}_cemaat` as keyof EntryState]
     ).length;
-    const optional = [entry.tahajjud, entry.duha, entry.evvabin].filter(
+    const optional = [entry.tahajjud, entry.duha, entry.evvabin, entry.cevsen].filter(
       Boolean
     ).length;
     return { prayers, cemaat, optional };
   }, [entry]);
+
+  const updateGoal = (id: string, patch: Partial<Goal>) => {
+    setGoals((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...patch } : g))
+    );
+  };
 
   const tabs = [
     { href: "/student/today", label: "Today", icon: <Home size={16} /> },
@@ -245,7 +309,7 @@ export default function TodayPage() {
 
         {/* Optional prayers */}
         <Section title="Sunnah & nafl">
-          <div className="grid sm:grid-cols-3 gap-2">
+          <div className="grid sm:grid-cols-4 gap-2">
             <HabitToggle
               label="Tahajjud"
               icon={<Moon size={16} />}
@@ -263,6 +327,12 @@ export default function TodayPage() {
               icon={<Sunrise size={16} />}
               done={entry.evvabin}
               onToggle={() => set("evvabin", !entry.evvabin)}
+            />
+            <HabitToggle
+              label="Cevsen"
+              icon={<Sparkles size={16} />}
+              done={entry.cevsen}
+              onToggle={() => set("cevsen", !entry.cevsen)}
             />
           </div>
         </Section>
@@ -296,9 +366,77 @@ export default function TodayPage() {
             />
           </div>
         </Section>
+
+        <Section
+          title="Custom goals"
+          action={
+            <button
+              onClick={() => setShowGoalForm(true)}
+              className="tap w-8 h-8 rounded-full glass-soft text-mocha-600 flex items-center justify-center"
+              aria-label="Create personal goal"
+            >
+              <Plus size={16} />
+            </button>
+          }
+        >
+          {goals.length === 0 ? (
+            <GlassCard className="p-5 text-sm text-mocha-500">
+              No custom goals yet.
+            </GlassCard>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {goals.map((g) =>
+                g.kind === "count" ? (
+                  <Stepper
+                    key={g.id}
+                    label={g.title}
+                    hint={
+                      g.created_by_role === "talebe"
+                        ? "Personal goal"
+                        : "Assigned goal"
+                    }
+                    value={g.amount}
+                    onChange={(n) =>
+                      updateGoal(g.id, { amount: n, completed: n > 0 })
+                    }
+                    icon={<Sparkles size={18} />}
+                    unit={g.unit || undefined}
+                  />
+                ) : (
+                  <HabitToggle
+                    key={g.id}
+                    label={g.title}
+                    hint={
+                      g.created_by_role === "talebe"
+                        ? "Personal goal"
+                        : "Assigned goal"
+                    }
+                    done={g.completed}
+                    onToggle={() =>
+                      updateGoal(g.id, { completed: !g.completed })
+                    }
+                    icon={<Sparkles size={16} />}
+                  />
+                )
+              )}
+            </div>
+          )}
+        </Section>
       </div>
 
       <TabBar tabs={tabs} />
+      {showGoalForm && (
+        <NewPersonalGoalModal
+          onClose={() => setShowGoalForm(false)}
+          onCreated={(goal) => {
+            setGoals((prev) => [
+              ...prev,
+              { ...goal, completed: false, amount: 0 },
+            ]);
+            setShowGoalForm(false);
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -306,10 +444,12 @@ export default function TodayPage() {
 function Section({
   title,
   hint,
+  action,
   children,
 }: {
   title: string;
   hint?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -318,7 +458,7 @@ function Section({
         <h2 className="font-display text-lg font-semibold text-mocha-700">
           {title}
         </h2>
-        {hint && <span className="text-xs text-mocha-400">{hint}</span>}
+        {action ?? (hint && <span className="text-xs text-mocha-400">{hint}</span>)}
       </div>
       {children}
     </section>
@@ -341,6 +481,111 @@ function SummaryStat({
         {value}
       </div>
       <div className="text-xs text-mocha-400">{label}</div>
+    </div>
+  );
+}
+
+function NewPersonalGoalModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (goal: Goal) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [kind, setKind] = useState<"boolean" | "count">("boolean");
+  const [unit, setUnit] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const res = await fetch("/api/goals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        kind,
+        unit,
+        points: 1,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Could not create goal.");
+      setLoading(false);
+      return;
+    }
+    onCreated(data.goal);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-mocha-800/30 backdrop-blur-sm animate-fade-in">
+      <div className="glass-strong rounded-3xl w-full max-w-md p-6 animate-slide-up">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-2xl font-semibold text-mocha-700">
+            Personal goal
+          </h2>
+          <button
+            onClick={onClose}
+            className="tap p-2 rounded-full hover:bg-cream-200/60 text-mocha-500"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={onSubmit} className="flex flex-col gap-3">
+          <Input
+            label="Goal"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Memorize a dua"
+            required
+          />
+          <div>
+            <div className="text-sm font-medium text-mocha-600 mb-1.5">
+              Tracking style
+            </div>
+            <div className="glass-soft rounded-2xl p-1 flex">
+              {(["boolean", "count"] as const).map((k) => (
+                <button
+                  type="button"
+                  key={k}
+                  onClick={() => setKind(k)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium tap transition ${
+                    kind === k ? "bg-mocha-600 text-cream-50" : "text-mocha-500"
+                  }`}
+                >
+                  {k === "boolean" ? "Done" : "Count"}
+                </button>
+              ))}
+            </div>
+          </div>
+          {kind === "count" && (
+            <Input
+              label="Unit"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder="pages, minutes, times"
+            />
+          )}
+          {error && (
+            <div className="text-sm text-accent-rose bg-accent-rose/10 rounded-xl px-3 py-2">
+              {error}
+            </div>
+          )}
+          <div className="flex gap-2 pt-2">
+            <Button variant="ghost" type="button" onClick={onClose} block>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading} block>
+              {loading ? "Creating..." : "Create"}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

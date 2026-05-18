@@ -12,6 +12,10 @@ export default function LeaderEntryPage() {
   const [mode, setMode] = useState<"login" | "create">("login");
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [schoolLevel, setSchoolLevel] = useState<
+    "middle_school" | "high_school" | "mixed"
+  >("middle_school");
+  const [mentorName, setMentorName] = useState("");
   const [passphrase, setPassphrase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,7 +56,12 @@ export default function LeaderEntryPage() {
     const res = await fetch("/api/groups/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, passphrase }),
+      body: JSON.stringify({
+        name,
+        passphrase,
+        school_level: schoolLevel,
+        mentor_name: mentorName,
+      }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -84,7 +93,7 @@ export default function LeaderEntryPage() {
               </div>
             </div>
             <p className="text-xs text-mocha-400 mb-5">
-              Keep your passphrase safe — you'll use it to sign back in.
+              Keep your passphrase safe - you'll use it to sign back in.
             </p>
             <Button block onClick={() => router.push("/leader/dashboard")}>
               Open dashboard →
@@ -110,7 +119,7 @@ export default function LeaderEntryPage() {
             <Users size={26} />
           </div>
           <h1 className="font-display text-3xl font-semibold text-mocha-700">
-            Leader access
+            Mentor access
           </h1>
           <p className="text-mocha-500 mt-1 mb-5">
             {mode === "login"
@@ -154,7 +163,7 @@ export default function LeaderEntryPage() {
                 required
               />
               <Input
-                label="Leader passphrase"
+                label="Mentor passphrase"
                 type="password"
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
@@ -180,7 +189,42 @@ export default function LeaderEntryPage() {
                 required
               />
               <Input
-                label="Leader passphrase"
+                label="Mentor name"
+                value={mentorName}
+                onChange={(e) => setMentorName(e.target.value)}
+                placeholder="Shown on the mentor dashboard"
+              />
+              <div>
+                <div className="text-sm font-medium text-mocha-600 mb-1.5">
+                  Group level
+                </div>
+                <div className="glass-soft rounded-2xl p-1 flex">
+                  {[
+                    ["middle_school", "Middle"],
+                    ["high_school", "High"],
+                    ["mixed", "Mixed"],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      key={value}
+                      onClick={() =>
+                        setSchoolLevel(
+                          value as "middle_school" | "high_school" | "mixed"
+                        )
+                      }
+                      className={`flex-1 py-2 rounded-xl text-sm font-medium tap transition ${
+                        schoolLevel === value
+                          ? "bg-mocha-600 text-cream-50"
+                          : "text-mocha-500"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Input
+                label="Mentor passphrase"
                 type="password"
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}

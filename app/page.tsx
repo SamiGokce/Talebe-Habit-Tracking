@@ -29,7 +29,7 @@ export default function LandingPage() {
             </div>
             <div>
               <div className="text-xl font-semibold text-mocha-700">
-                I'm a Student
+                I'm a Talebe
               </div>
               <p className="text-mocha-500 text-sm mt-1">
                 Join your group with a code and track your daily goals.
@@ -49,10 +49,10 @@ export default function LandingPage() {
             </div>
             <div>
               <div className="text-xl font-semibold text-mocha-700">
-                I'm a Leader
+                I'm a Mentor
               </div>
               <p className="text-mocha-500 text-sm mt-1">
-                Create your group, manage members, and run contests.
+                Create your group, assign goals, and run contests.
               </p>
             </div>
             <span className="mt-2 text-mocha-600 text-sm font-medium group-hover:translate-x-1 transition-transform">

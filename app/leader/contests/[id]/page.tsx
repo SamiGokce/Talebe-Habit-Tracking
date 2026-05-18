@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Home, Trophy, Medal, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, Home, Trophy, Medal, Target, Trash2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
@@ -63,7 +63,9 @@ export default function LeaderContestDetailPage() {
 
   const tabs = [
     { href: "/leader/dashboard", label: "Members", icon: <Home size={16} /> },
+    { href: "/leader/goals", label: "Goals", icon: <Target size={16} /> },
     { href: "/leader/contests", label: "Contests", icon: <Trophy size={16} /> },
+    { href: "/leader/reports", label: "Reports", icon: <Calendar size={16} /> },
   ];
 
   if (loading || !contest) {

@@ -9,6 +9,8 @@ import {
   Users,
   Trophy,
   Home,
+  Calendar,
+  Target,
   BookOpen,
   Sparkles,
   Moon,
@@ -35,6 +37,7 @@ type Member = {
   tahajjud: boolean | null;
   duha: boolean | null;
   evvabin: boolean | null;
+  cevsen: boolean | null;
   quran_pages: number | null;
   zikr_count: number | null;
   book_pages: number | null;
@@ -93,7 +96,9 @@ export default function LeaderDashboardPage() {
 
   const tabs = [
     { href: "/leader/dashboard", label: "Members", icon: <Home size={16} /> },
+    { href: "/leader/goals", label: "Goals", icon: <Target size={16} /> },
     { href: "/leader/contests", label: "Contests", icon: <Trophy size={16} /> },
+    { href: "/leader/reports", label: "Reports", icon: <Calendar size={16} /> },
   ];
 
   async function copyCode() {
