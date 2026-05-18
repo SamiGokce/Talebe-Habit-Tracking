@@ -4,10 +4,10 @@ let _sql: NeonQueryFunction<false, false> | null = null;
 
 function getSql(): NeonQueryFunction<false, false> {
   if (_sql) return _sql;
-  const url = process.env.DATABASE_URL;
+  const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
   if (!url || url === "postgres://placeholder") {
     throw new Error(
-      "DATABASE_URL is not set. Add it in .env.local or in Vercel project settings."
+      "DATABASE_URL or POSTGRES_URL is not set. Add one in .env.local or in Vercel project settings."
     );
   }
   _sql = neon(url);

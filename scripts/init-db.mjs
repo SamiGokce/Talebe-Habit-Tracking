@@ -5,13 +5,17 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 dotenv.config({ path: ".env" });
 
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL not set. Create .env.local from .env.example.");
+const databaseUrlValue = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+if (!databaseUrlValue) {
+  console.error(
+    "DATABASE_URL or POSTGRES_URL not set. Create .env.local from .env.example or pull Vercel env vars."
+  );
   process.exit(1);
 }
 
 try {
-  const databaseUrl = new URL(process.env.DATABASE_URL);
+  const databaseUrl = new URL(databaseUrlValue);
   const placeholderParts = new Set(["host", "user", "pass", "db"]);
   const hasPlaceholder =
     placeholderParts.has(databaseUrl.hostname) ||
@@ -21,16 +25,16 @@ try {
 
   if (hasPlaceholder) {
     console.error(
-      "DATABASE_URL still has placeholder values. Replace it in .env.local with your Neon or Vercel Postgres connection string."
+      "Database URL still has placeholder values. Replace it in .env.local with your Neon or Vercel Postgres connection string."
     );
     process.exit(1);
   }
 } catch {
-  console.error("DATABASE_URL is not a valid Postgres connection string.");
+  console.error("Database URL is not a valid Postgres connection string.");
   process.exit(1);
 }
 
-const sql = neon(process.env.DATABASE_URL);
+const sql = neon(databaseUrlValue);
 const schema = readFileSync(new URL("../schema.sql", import.meta.url), "utf8");
 
 const statements = schema

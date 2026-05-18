@@ -51,6 +51,7 @@ export default function LeaderDashboardPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -64,10 +65,20 @@ export default function LeaderDashboardPage() {
         groupCode: meData.leader.groupCode,
         groupName: meData.leader.groupName,
       });
-      const res = await fetch("/api/leader/members");
-      const data = await res.json();
-      setMembers(data.members || []);
-      setLoading(false);
+      try {
+        const res = await fetch("/api/leader/members");
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(data.error || "Could not load members.");
+          setLoading(false);
+          return;
+        }
+        setMembers(data.members || []);
+        setLoading(false);
+      } catch {
+        setError("Could not load members.");
+        setLoading(false);
+      }
     })();
   }, [router]);
 
@@ -173,7 +184,14 @@ export default function LeaderDashboardPage() {
           Members
         </h2>
 
-        {members.length === 0 ? (
+        {error ? (
+          <GlassCard className="p-5 text-mocha-500">
+            <div className="font-medium text-mocha-700 mb-1">
+              Dashboard needs database setup
+            </div>
+            <div className="text-sm">{error}</div>
+          </GlassCard>
+        ) : members.length === 0 ? (
           <GlassCard className="p-8 text-center text-mocha-500">
             No students yet. Share your group code with them to get started.
           </GlassCard>
