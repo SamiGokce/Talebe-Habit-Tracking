@@ -18,11 +18,7 @@ export function Header({
   const router = useRouter();
   const logout = async () => {
     if (!logoutPath) return;
-    const endpoint =
-      logoutPath === "student"
-        ? "/api/students/logout"
-        : "/api/groups/logout";
-    await fetch(endpoint, { method: "POST" });
+    await fetch("/api/account/logout", { method: "POST" });
     router.push("/");
   };
   return (

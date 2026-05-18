@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { clearStudentSession } from "@/lib/session";
+import { clearAccountSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 
 export async function POST() {
-  await clearStudentSession();
+  await clearAccountSession();
   return NextResponse.json({ ok: true });
 }

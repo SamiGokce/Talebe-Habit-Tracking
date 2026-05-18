@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, Users, Moon, BookOpen, Heart } from "lucide-react";
+import { GraduationCap, Users, Moon, BookOpen, Heart, UserRound } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -17,6 +17,25 @@ export default function LandingPage() {
             A simple, calm space for students and group leaders to grow their
             daily worship together.
           </p>
+        </div>
+
+        <div className="mb-4 animate-slide-up">
+          <Link
+            href="/account"
+            className="tap glass-strong rounded-3xl p-6 flex items-center gap-4 hover:shadow-glass-lg"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-accent-gold/20 text-mocha-600 flex items-center justify-center">
+              <UserRound size={26} />
+            </div>
+            <div>
+              <div className="text-xl font-semibold text-mocha-700">
+                Sign in or create account
+              </div>
+              <p className="text-mocha-500 text-sm mt-1">
+                Accounts are required before joining or managing groups.
+              </p>
+            </div>
+          </Link>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4 animate-slide-up">
@@ -52,7 +71,7 @@ export default function LandingPage() {
                 I'm a Mentor
               </div>
               <p className="text-mocha-500 text-sm mt-1">
-                Create your group, assign goals, and run contests.
+                Open assigned groups, assign goals, and run contests.
               </p>
             </div>
             <span className="mt-2 text-mocha-600 text-sm font-medium group-hover:translate-x-1 transition-transform">

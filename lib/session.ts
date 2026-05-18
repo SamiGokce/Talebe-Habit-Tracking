@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import type { AppRole } from "@/lib/types";
 
 function getKey(): Uint8Array {
   const secret = process.env.SESSION_SECRET;
@@ -11,8 +12,16 @@ function getKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
+const ACCOUNT_COOKIE = "talebe_account";
 const STUDENT_COOKIE = "talebe_student";
 const LEADER_COOKIE = "talebe_leader";
+
+export type AccountSession = {
+  userId: string;
+  email: string;
+  displayName: string;
+  role: AppRole;
+};
 
 export type StudentSession = {
   studentId: string;
@@ -46,16 +55,40 @@ async function verifyToken<T>(token: string): Promise<T | null> {
   }
 }
 
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  };
+}
+
+export async function setAccountSession(s: AccountSession) {
+  const token = await signToken({ ...s });
+  const jar = await cookies();
+  jar.set(ACCOUNT_COOKIE, token, cookieOptions());
+}
+
+export async function getAccountSession(): Promise<AccountSession | null> {
+  const jar = await cookies();
+  const token = jar.get(ACCOUNT_COOKIE)?.value;
+  if (!token) return null;
+  return verifyToken<AccountSession>(token);
+}
+
+export async function clearAccountSession() {
+  const jar = await cookies();
+  jar.delete(ACCOUNT_COOKIE);
+  jar.delete(STUDENT_COOKIE);
+  jar.delete(LEADER_COOKIE);
+}
+
 export async function setStudentSession(s: StudentSession) {
   const token = await signToken({ ...s });
   const jar = await cookies();
-  jar.set(STUDENT_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  jar.set(STUDENT_COOKIE, token, cookieOptions());
 }
 
 export async function getStudentSession(): Promise<StudentSession | null> {
@@ -73,13 +106,7 @@ export async function clearStudentSession() {
 export async function setLeaderSession(s: LeaderSession) {
   const token = await signToken({ ...s });
   const jar = await cookies();
-  jar.set(LEADER_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  jar.set(LEADER_COOKIE, token, cookieOptions());
 }
 
 export async function getLeaderSession(): Promise<LeaderSession | null> {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
 import { generateInviteCode } from "@/lib/codes";
-import { setLeaderSession } from "@/lib/session";
+import { getAccountSession, setLeaderSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,15 @@ const SCHOOL_LEVELS = new Set(["middle_school", "high_school", "mixed"]);
 
 export async function POST(req: Request) {
   try {
-    const { name, passphrase, school_level, mentor_name } = await req.json();
+    const account = await getAccountSession();
+    if (!account || !["uniteci", "admin"].includes(account.role)) {
+      return NextResponse.json(
+        { error: "Only unitecis can create groups." },
+        { status: 403 }
+      );
+    }
+
+    const { name, school_level, mentor_name, mentor_user_id } = await req.json();
     const schoolLevel = SCHOOL_LEVELS.has(String(school_level))
       ? String(school_level)
       : "middle_school";
@@ -21,14 +29,24 @@ export async function POST(req: Request) {
 
     if (
       typeof name !== "string" ||
-      name.trim().length < 2 ||
-      typeof passphrase !== "string" ||
-      passphrase.length < 4
+      name.trim().length < 2
     ) {
       return NextResponse.json(
-        { error: "Group name (2+ chars) and passphrase (4+ chars) required." },
+        { error: "Group name must be at least 2 characters." },
         { status: 400 }
       );
+    }
+
+    let mentorUserId: string | null = null;
+    if (mentor_user_id) {
+      const mentors = await sql`
+        SELECT id, display_name FROM users
+        WHERE id = ${String(mentor_user_id)} AND role IN ('mentor', 'uniteci', 'admin')
+      `;
+      if (mentors.length === 0) {
+        return NextResponse.json({ error: "Mentor not found." }, { status: 404 });
+      }
+      mentorUserId = (mentors[0] as { id: string }).id;
     }
 
     let code = "";
@@ -45,13 +63,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const hash = await bcrypt.hash(passphrase, 10);
+    const hash = await bcrypt.hash(crypto.randomUUID(), 10);
 
     const rows = await sql`
       INSERT INTO groups (
-        code, name, school_level, mentor_name, leader_passphrase_hash
+        code, name, school_level, mentor_name, mentor_user_id, leader_passphrase_hash
       )
-      VALUES (${code}, ${name.trim()}, ${schoolLevel}, ${mentorName}, ${hash})
+      VALUES (${code}, ${name.trim()}, ${schoolLevel}, ${mentorName}, ${mentorUserId}, ${hash})
       RETURNING id, code, name, school_level, mentor_name
     `;
     const group = rows[0] as {

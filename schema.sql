@@ -3,22 +3,37 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  display_name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'talebe',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (role IN ('talebe', 'mentor', 'uniteci', 'admin'))
+);
+
+CREATE INDEX IF NOT EXISTS users_role_idx ON users(role);
+
 CREATE TABLE IF NOT EXISTS groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   school_level TEXT NOT NULL DEFAULT 'middle_school',
   mentor_name TEXT,
+  mentor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   leader_passphrase_hash TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS school_level TEXT NOT NULL DEFAULT 'middle_school';
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS mentor_name TEXT;
+ALTER TABLE groups ADD COLUMN IF NOT EXISTS mentor_user_id UUID REFERENCES users(id) ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS students (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   display_name TEXT NOT NULL,
   school_level TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -26,6 +41,11 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 ALTER TABLE students ADD COLUMN IF NOT EXISTS school_level TEXT;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE;
+
+CREATE UNIQUE INDEX IF NOT EXISTS students_group_user_idx
+  ON students(group_id, user_id)
+  WHERE user_id IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS students_group_idx ON students(group_id);
 

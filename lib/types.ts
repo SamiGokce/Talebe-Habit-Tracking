@@ -15,8 +15,15 @@ export type Student = {
   created_at: string;
 };
 
-export type AppRole = "talebe" | "mentor" | "uniteci";
+export type AppRole = "talebe" | "mentor" | "uniteci" | "admin";
 export type SchoolLevel = "middle_school" | "high_school" | "mixed";
+
+export type AccountUser = {
+  id: string;
+  email: string;
+  display_name: string;
+  role: AppRole;
+};
 
 export type Entry = {
   id: string;

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
-import { normalizeCode } from "@/lib/codes";
 import { getAccountSession, setLeaderSession } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -11,10 +10,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Sign in first." }, { status: 401 });
   }
 
-  const { code } = await req.json();
-  const normalized = normalizeCode(String(code ?? ""));
-  if (!normalized) {
-    return NextResponse.json({ error: "Group code required." }, { status: 400 });
+  const { group_id } = await req.json();
+  const groupId = String(group_id ?? "");
+  if (!groupId) {
+    return NextResponse.json({ error: "Group required." }, { status: 400 });
   }
 
   const rows =
@@ -22,20 +21,20 @@ export async function POST(req: Request) {
       ? await sql`
           SELECT id, code, name, school_level, mentor_name
           FROM groups
-          WHERE code = ${normalized} AND mentor_user_id = ${account.userId}
+          WHERE id = ${groupId} AND mentor_user_id = ${account.userId}
         `
       : ["uniteci", "admin"].includes(account.role)
         ? await sql`
             SELECT id, code, name, school_level, mentor_name
             FROM groups
-            WHERE code = ${normalized}
+            WHERE id = ${groupId}
           `
         : [];
 
   if (rows.length === 0) {
     return NextResponse.json(
-      { error: "Group not found or not assigned to your account." },
-      { status: 404 }
+      { error: "You do not manage this group." },
+      { status: 403 }
     );
   }
 

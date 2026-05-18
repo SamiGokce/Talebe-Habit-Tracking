@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, GraduationCap } from "lucide-react";
@@ -10,9 +10,21 @@ import { Input } from "@/components/Input";
 export default function StudentJoinPage() {
   const router = useRouter();
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch("/api/me");
+      const data = await res.json();
+      if (!data.account) {
+        router.push("/account?next=/student/join");
+        return;
+      }
+      setAccountName(data.account.displayName);
+    })();
+  }, [router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -21,7 +33,7 @@ export default function StudentJoinPage() {
     const res = await fetch("/api/students/join", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, name }),
+      body: JSON.stringify({ code }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -50,7 +62,7 @@ export default function StudentJoinPage() {
             Join your group
           </h1>
           <p className="text-mocha-500 mt-1 mb-6">
-            Ask your group leader for the invite code.
+            Ask your mentor for the invite code.
           </p>
 
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -67,13 +79,11 @@ export default function StudentJoinPage() {
               spellCheck={false}
               required
             />
-            <Input
-              label="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="How your leader knows you"
-              required
-            />
+            {accountName && (
+              <div className="glass-soft rounded-2xl px-4 py-3 text-sm text-mocha-500">
+                Joining as <span className="font-medium text-mocha-700">{accountName}</span>
+              </div>
+            )}
             {error && (
               <div className="text-sm text-accent-rose bg-accent-rose/10 rounded-xl px-3 py-2">
                 {error}
@@ -84,7 +94,7 @@ export default function StudentJoinPage() {
             </Button>
           </form>
           <p className="text-xs text-mocha-400 mt-4">
-            No account needed. We just remember you on this device.
+            Your progress is connected to your account.
           </p>
         </div>
       </div>
