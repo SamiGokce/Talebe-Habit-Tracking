@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Sparkles, Trash2, Users } from "lucide-react";
+import { Button } from "@/components/Button";
 import { GlassCard } from "@/components/GlassCard";
 
 type Group = {
@@ -37,6 +38,7 @@ export default function PanelGroupPage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,6 +67,28 @@ export default function PanelGroupPage() {
     })();
   }, [params.id, router]);
 
+  async function deleteGroup() {
+    if (!group || deleting) return;
+    const confirmed = window.confirm(
+      `Delete ${group.name}? This will remove the group, its students, and their progress.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setError(null);
+    const res = await fetch(`/api/panel/groups/${group.id}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Could not delete group.");
+      setDeleting(false);
+      return;
+    }
+
+    router.push(group.unite_id ? `/panel/unites/${group.unite_id}` : "/panel");
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -89,13 +113,25 @@ export default function PanelGroupPage() {
           </GlassCard>
         ) : (
           <>
-            <div className="mb-5">
-              <h1 className="font-display text-3xl font-semibold text-mocha-700">
-                {group.name}
-              </h1>
-              <p className="text-sm text-mocha-500">
-                {group.unite_name || "No unite"} / {group.code}
-              </p>
+            <div className="mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div>
+                <h1 className="font-display text-3xl font-semibold text-mocha-700">
+                  {group.name}
+                </h1>
+                <p className="text-sm text-mocha-500">
+                  {group.unite_name || "No unite"} / {group.code}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={deleteGroup}
+                disabled={deleting}
+                className="self-start"
+              >
+                <Trash2 size={16} />
+                {deleting ? "Deleting..." : "Delete"}
+              </Button>
             </div>
 
             {students.length === 0 ? (

@@ -6,8 +6,6 @@ import { getAccountSession, setLeaderSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 
-const SCHOOL_LEVELS = new Set(["middle_school", "high_school", "mixed"]);
-
 export async function POST(req: Request) {
   try {
     const account = await getAccountSession();
@@ -18,11 +16,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, school_level, mentor_name, mentor_user_id, unite_id } =
-      await req.json();
-    const schoolLevel = SCHOOL_LEVELS.has(String(school_level))
-      ? String(school_level)
-      : "middle_school";
+    const { name, mentor_name, mentor_user_id, unite_id } = await req.json();
     const mentorName =
       typeof mentor_name === "string" && mentor_name.trim()
         ? mentor_name.trim()
@@ -86,9 +80,9 @@ export async function POST(req: Request) {
 
     const rows = await sql`
       INSERT INTO groups (
-        unite_id, code, name, school_level, mentor_name, mentor_user_id, leader_passphrase_hash
+        unite_id, code, name, mentor_name, mentor_user_id, leader_passphrase_hash
       )
-      VALUES (${uniteId}, ${code}, ${name.trim()}, ${schoolLevel}, ${mentorName}, ${mentorUserId}, ${hash})
+      VALUES (${uniteId}, ${code}, ${name.trim()}, ${mentorName}, ${mentorUserId}, ${hash})
       RETURNING id, code, name, school_level, mentor_name
     `;
     const group = rows[0] as {

@@ -18,7 +18,6 @@ type Group = {
   id: string;
   code: string;
   name: string;
-  school_level: "middle_school" | "high_school" | "mixed";
   mentor_name: string | null;
   unite_name: string | null;
 };
@@ -46,9 +45,6 @@ export default function LeaderEntryPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
-  const [schoolLevel, setSchoolLevel] = useState<
-    "middle_school" | "high_school" | "mixed"
-  >("middle_school");
   const [mentorName, setMentorName] = useState("");
   const [mentorUserId, setMentorUserId] = useState("");
   const [uniteId, setUniteId] = useState("");
@@ -111,7 +107,6 @@ export default function LeaderEntryPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        school_level: schoolLevel,
         mentor_name: mentorName,
         mentor_user_id: mentorUserId || null,
         unite_id: uniteId,
@@ -180,7 +175,7 @@ export default function LeaderEntryPage() {
                     <div className="font-semibold text-mocha-700">{g.name}</div>
                     <div className="text-xs text-mocha-400">
                       {g.unite_name ? `${g.unite_name} / ` : ""}
-                      {g.code} / {g.school_level.replace("_", " ")}
+                      {g.code}
                     </div>
                   </div>
                   <Users size={20} className="text-mocha-500" />
@@ -246,35 +241,6 @@ export default function LeaderEntryPage() {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-mocha-600 mb-1.5">
-                  Group level
-                </div>
-                <div className="glass-soft rounded-2xl p-1 flex">
-                  {[
-                    ["middle_school", "Middle"],
-                    ["high_school", "High"],
-                    ["mixed", "Mixed"],
-                  ].map(([value, label]) => (
-                    <button
-                      type="button"
-                      key={value}
-                      onClick={() =>
-                        setSchoolLevel(
-                          value as "middle_school" | "high_school" | "mixed"
-                        )
-                      }
-                      className={`flex-1 py-2 rounded-xl text-sm font-medium tap transition ${
-                        schoolLevel === value
-                          ? "bg-mocha-600 text-cream-50"
-                          : "text-mocha-500"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
               </div>
               <Button type="submit" block disabled={creating}>
                 {creating ? "Creating..." : "Create group"}

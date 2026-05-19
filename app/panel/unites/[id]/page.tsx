@@ -17,7 +17,6 @@ type Group = {
   id: string;
   code: string;
   name: string;
-  school_level: string;
   mentor_name: string | null;
   mentor_account_name: string | null;
   student_count: number;
@@ -107,7 +106,7 @@ export default function UniteDetailPage() {
                         {group.name}
                       </div>
                       <div className="text-xs text-mocha-400">
-                        {group.code} / {group.school_level.replace("_", " ")}
+                        {group.code}
                       </div>
                       <div className="text-xs text-mocha-400">
                         Mentor: {group.mentor_account_name || group.mentor_name || "Unassigned"}

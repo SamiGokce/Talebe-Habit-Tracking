@@ -73,3 +73,33 @@ export async function GET(_req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(_req: Request, ctx: Ctx) {
+  try {
+    const account = await getAccountSession();
+    if (!canUsePanel(account)) {
+      return NextResponse.json({ error: "Admin or uniteci only." }, { status: 403 });
+    }
+
+    const { id } = await ctx.params;
+    if (!(await canAccessGroup(account!, id))) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+
+    const rows = await sql`
+      DELETE FROM groups
+      WHERE id = ${id}
+      RETURNING id, unite_id
+    `;
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true, group: rows[0] });
+  } catch (err) {
+    const setupError = setupErrorResponse(err);
+    if (setupError) return setupError;
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

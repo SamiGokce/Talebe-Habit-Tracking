@@ -3,7 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Building2, Plus, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  GraduationCap,
+  Plus,
+  Shield,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/Button";
 import { GlassCard } from "@/components/GlassCard";
 import { Input } from "@/components/Input";
@@ -135,6 +142,31 @@ export default function PanelHomePage() {
           <div className="text-sm text-accent-rose bg-accent-rose/10 rounded-xl px-3 py-2 mb-4">
             {error}
           </div>
+        )}
+
+        {isAdmin && (
+          <GlassCard className="p-4 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Link
+                href="/admin/groups"
+                className="tap glass-soft rounded-2xl px-4 py-3 flex items-center gap-2 text-mocha-700 font-medium"
+              >
+                <Building2 size={17} /> All groups
+              </Link>
+              <Link
+                href="/admin/students"
+                className="tap glass-soft rounded-2xl px-4 py-3 flex items-center gap-2 text-mocha-700 font-medium"
+              >
+                <GraduationCap size={17} /> All students
+              </Link>
+              <Link
+                href="/admin/users"
+                className="tap glass-soft rounded-2xl px-4 py-3 flex items-center gap-2 text-mocha-700 font-medium"
+              >
+                <Shield size={17} /> User roles
+              </Link>
+            </div>
+          </GlassCard>
         )}
 
         {isAdmin && (
