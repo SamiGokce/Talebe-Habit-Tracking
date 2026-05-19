@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { sql } from "@/lib/db";
+import { setupErrorResponse } from "@/lib/api-errors";
 import { normalizeName } from "@/lib/codes";
 import { setAccountSession } from "@/lib/session";
 import type { AppRole } from "@/lib/types";
@@ -67,6 +68,8 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
+    const setupError = setupErrorResponse(err);
+    if (setupError) return setupError;
     console.error(err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
