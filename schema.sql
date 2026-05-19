@@ -15,8 +15,19 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS users_role_idx ON users(role);
 
+CREATE TABLE IF NOT EXISTS unites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  uniteci_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS unites_uniteci_idx ON unites(uniteci_user_id);
+
 CREATE TABLE IF NOT EXISTS groups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  unite_id UUID REFERENCES unites(id) ON DELETE SET NULL,
   code TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   school_level TEXT NOT NULL DEFAULT 'middle_school',
@@ -26,9 +37,12 @@ CREATE TABLE IF NOT EXISTS groups (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE groups ADD COLUMN IF NOT EXISTS unite_id UUID REFERENCES unites(id) ON DELETE SET NULL;
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS school_level TEXT NOT NULL DEFAULT 'middle_school';
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS mentor_name TEXT;
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS mentor_user_id UUID REFERENCES users(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS groups_unite_idx ON groups(unite_id);
 
 CREATE TABLE IF NOT EXISTS students (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

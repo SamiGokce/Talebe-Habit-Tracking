@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { GraduationCap, Users, Moon, BookOpen, Heart, UserRound } from "lucide-react";
+import {
+  Building2,
+  GraduationCap,
+  Users,
+  Moon,
+  BookOpen,
+  Heart,
+  UserRound,
+} from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -38,7 +46,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 animate-slide-up">
+        <div className="grid sm:grid-cols-3 gap-4 animate-slide-up">
           <Link
             href="/student/join"
             className="tap glass-strong rounded-3xl p-7 flex flex-col gap-3 hover:shadow-glass-lg group"
@@ -76,6 +84,26 @@ export default function LandingPage() {
             </div>
             <span className="mt-2 text-mocha-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
               Open dashboard →
+            </span>
+          </Link>
+
+          <Link
+            href="/panel"
+            className="tap glass-strong rounded-3xl p-7 flex flex-col gap-3 hover:shadow-glass-lg group"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-accent-gold/20 text-mocha-600 flex items-center justify-center">
+              <Building2 size={26} />
+            </div>
+            <div>
+              <div className="text-xl font-semibold text-mocha-700">
+                Admin / Uniteci
+              </div>
+              <p className="text-mocha-500 text-sm mt-1">
+                Review unites, groups, students, and progress.
+              </p>
+            </div>
+            <span className="mt-2 text-mocha-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
+              Open panel
             </span>
           </Link>
         </div>

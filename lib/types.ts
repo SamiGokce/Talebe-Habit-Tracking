@@ -25,6 +25,14 @@ export type AccountUser = {
   role: AppRole;
 };
 
+export type Unite = {
+  id: string;
+  name: string;
+  description: string | null;
+  uniteci_user_id: string | null;
+  created_at: string;
+};
+
 export type Entry = {
   id: string;
   student_id: string;

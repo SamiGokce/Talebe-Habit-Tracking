@@ -13,18 +13,29 @@ export async function GET() {
   const groups =
     account.role === "mentor"
       ? await sql`
-          SELECT id, code, name, school_level, mentor_name
-          FROM groups
-          WHERE mentor_user_id = ${account.userId}
-          ORDER BY created_at DESC
+          SELECT g.id, g.code, g.name, g.school_level, g.mentor_name, u.name AS unite_name
+          FROM groups g
+          LEFT JOIN unites u ON u.id = g.unite_id
+          WHERE g.mentor_user_id = ${account.userId}
+          ORDER BY g.created_at DESC
         `
-      : ["uniteci", "admin"].includes(account.role)
+      : account.role === "uniteci"
         ? await sql`
-            SELECT id, code, name, school_level, mentor_name
-            FROM groups
-            ORDER BY created_at DESC
-          `
-        : [];
+          SELECT g.id, g.code, g.name, g.school_level, g.mentor_name, u.name AS unite_name
+          FROM groups g
+          JOIN unites u ON u.id = g.unite_id
+          WHERE u.uniteci_user_id = ${account.userId}
+          ORDER BY g.created_at DESC
+        `
+        : account.role === "admin"
+          ? await sql`
+          SELECT g.id, g.code, g.name, g.school_level, g.mentor_name, u.name AS unite_name
+          FROM groups
+          g
+          LEFT JOIN unites u ON u.id = g.unite_id
+          ORDER BY g.created_at DESC
+        `
+          : [];
 
   const mentors =
     ["uniteci", "admin"].includes(account.role)
@@ -36,5 +47,21 @@ export async function GET() {
         `
       : [];
 
-  return NextResponse.json({ groups, mentors });
+  const unites =
+    account.role === "admin"
+      ? await sql`
+          SELECT id, name
+          FROM unites
+          ORDER BY name ASC
+        `
+      : account.role === "uniteci"
+        ? await sql`
+            SELECT id, name
+            FROM unites
+            WHERE uniteci_user_id = ${account.userId}
+            ORDER BY name ASC
+          `
+        : [];
+
+  return NextResponse.json({ groups, mentors, unites });
 }

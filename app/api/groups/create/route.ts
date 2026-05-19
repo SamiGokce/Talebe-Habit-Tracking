@@ -18,7 +18,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const { name, school_level, mentor_name, mentor_user_id } = await req.json();
+    const { name, school_level, mentor_name, mentor_user_id, unite_id } =
+      await req.json();
     const schoolLevel = SCHOOL_LEVELS.has(String(school_level))
       ? String(school_level)
       : "middle_school";
@@ -49,6 +50,24 @@ export async function POST(req: Request) {
       mentorUserId = (mentors[0] as { id: string }).id;
     }
 
+    const uniteId = String(unite_id ?? "");
+    if (!uniteId) {
+      return NextResponse.json({ error: "Unite is required." }, { status: 400 });
+    }
+    const uniteRows =
+      account.role === "admin"
+        ? await sql`SELECT id FROM unites WHERE id = ${uniteId}`
+        : await sql`
+            SELECT id FROM unites
+            WHERE id = ${uniteId} AND uniteci_user_id = ${account.userId}
+          `;
+    if (uniteRows.length === 0) {
+      return NextResponse.json(
+        { error: "You cannot create groups in this unite." },
+        { status: 403 }
+      );
+    }
+
     let code = "";
     for (let i = 0; i < 6; i++) {
       code = generateInviteCode(6);
@@ -67,9 +86,9 @@ export async function POST(req: Request) {
 
     const rows = await sql`
       INSERT INTO groups (
-        code, name, school_level, mentor_name, mentor_user_id, leader_passphrase_hash
+        unite_id, code, name, school_level, mentor_name, mentor_user_id, leader_passphrase_hash
       )
-      VALUES (${code}, ${name.trim()}, ${schoolLevel}, ${mentorName}, ${mentorUserId}, ${hash})
+      VALUES (${uniteId}, ${code}, ${name.trim()}, ${schoolLevel}, ${mentorName}, ${mentorUserId}, ${hash})
       RETURNING id, code, name, school_level, mentor_name
     `;
     const group = rows[0] as {

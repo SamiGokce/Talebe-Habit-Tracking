@@ -20,6 +20,7 @@ type Group = {
   name: string;
   school_level: "middle_school" | "high_school" | "mixed";
   mentor_name: string | null;
+  unite_name: string | null;
 };
 
 type Mentor = {
@@ -29,11 +30,17 @@ type Mentor = {
   role: string;
 };
 
+type UniteOption = {
+  id: string;
+  name: string;
+};
+
 export default function LeaderEntryPage() {
   const router = useRouter();
   const [account, setAccount] = useState<Account | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [unites, setUnites] = useState<UniteOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +51,7 @@ export default function LeaderEntryPage() {
   >("middle_school");
   const [mentorName, setMentorName] = useState("");
   const [mentorUserId, setMentorUserId] = useState("");
+  const [uniteId, setUniteId] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -68,6 +76,10 @@ export default function LeaderEntryPage() {
       }
       setGroups(data.groups || []);
       setMentors(data.mentors || []);
+      setUnites(data.unites || []);
+      if (data.unites?.length === 1) {
+        setUniteId(data.unites[0].id);
+      }
       setLoading(false);
     })();
   }, [router]);
@@ -102,6 +114,7 @@ export default function LeaderEntryPage() {
         school_level: schoolLevel,
         mentor_name: mentorName,
         mentor_user_id: mentorUserId || null,
+        unite_id: uniteId,
       }),
     });
     const data = await res.json();
@@ -166,6 +179,7 @@ export default function LeaderEntryPage() {
                   <div>
                     <div className="font-semibold text-mocha-700">{g.name}</div>
                     <div className="text-xs text-mocha-400">
+                      {g.unite_name ? `${g.unite_name} / ` : ""}
                       {g.code} / {g.school_level.replace("_", " ")}
                     </div>
                   </div>
@@ -185,6 +199,24 @@ export default function LeaderEntryPage() {
               </h2>
             </div>
             <form onSubmit={createGroup} className="flex flex-col gap-4">
+              <div>
+                <div className="text-sm font-medium text-mocha-600 mb-1.5">
+                  Unite
+                </div>
+                <select
+                  value={uniteId}
+                  onChange={(e) => setUniteId(e.target.value)}
+                  className="w-full glass-strong rounded-2xl px-4 py-3 text-base text-mocha-800 outline-none"
+                  required
+                >
+                  <option value="">Choose unite</option>
+                  {unites.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <Input
                 label="Group name"
                 value={name}
