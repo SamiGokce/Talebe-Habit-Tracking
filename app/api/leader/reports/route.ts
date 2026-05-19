@@ -10,6 +10,7 @@ type EntryRow = {
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
+  cevsen_pages: number;
   fajr: boolean;
   dhuhr: boolean;
   asr: boolean;
@@ -92,9 +93,10 @@ export async function GET(req: Request) {
       acc.quran_pages += Number(row.quran_pages || 0);
       acc.zikr_count += Number(row.zikr_count || 0);
       acc.book_pages += Number(row.book_pages || 0);
+      acc.cevsen_pages += Number(row.cevsen_pages || 0);
       return acc;
     },
-    { quran_pages: 0, zikr_count: 0, book_pages: 0 }
+    { quran_pages: 0, zikr_count: 0, book_pages: 0, cevsen_pages: 0 }
   );
 
   const quranTrend = splitTrend(entries, days, (row) => Number(row.quran_pages || 0));

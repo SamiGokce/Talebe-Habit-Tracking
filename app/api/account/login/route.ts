@@ -35,6 +35,12 @@ export async function POST(req: Request) {
       password_hash: string;
       role: AppRole;
     };
+    if (user.password_hash.startsWith("oauth:")) {
+      return NextResponse.json(
+        { error: "Use Google or Apple to sign in to this account." },
+        { status: 401 }
+      );
+    }
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
       return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });

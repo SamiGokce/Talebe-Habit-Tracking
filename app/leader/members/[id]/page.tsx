@@ -42,6 +42,7 @@ type Entry = {
   duha: boolean;
   evvabin: boolean;
   cevsen: boolean;
+  cevsen_pages: number;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -69,7 +70,7 @@ const HABIT_GROUPS: Array<{
       "tahajjud",
       "duha",
       "evvabin",
-      "cevsen",
+      "cevsen_pages",
       "quran_pages",
       "zikr_count",
       "book_pages",
@@ -159,11 +160,12 @@ export default function MemberDetailPage() {
       a.quran += e.quran_pages;
       a.zikr += e.zikr_count;
       a.book += e.book_pages;
+      a.cevsen += e.cevsen_pages || 0;
       a.fajrCemaat += e.fajr_cemaat ? 1 : 0;
       a.tahajjud += e.tahajjud ? 1 : 0;
       return a;
     },
-    { quran: 0, zikr: 0, book: 0, fajrCemaat: 0, tahajjud: 0 }
+    { quran: 0, zikr: 0, book: 0, cevsen: 0, fajrCemaat: 0, tahajjud: 0 }
   );
 
   return (
@@ -190,6 +192,7 @@ export default function MemberDetailPage() {
           <Stat icon={<BookOpen size={14} />} v={totals.quran} l="Quran pages (60d)" />
           <Stat icon={<Sparkles size={14} />} v={totals.zikr} l="Zikr (60d)" />
           <Stat icon={<Moon size={14} />} v={totals.book} l="Book pages (60d)" />
+          <Stat icon={<BookOpen size={14} />} v={totals.cevsen} l="Cevsen pages (60d)" />
           <Stat icon={<Moon size={14} />} v={totals.fajrCemaat} l="Fajr cemaat days" />
           <Stat icon={<Moon size={14} />} v={totals.tahajjud} l="Tahajjud days" />
         </div>
@@ -291,7 +294,7 @@ export default function MemberDetailPage() {
                     <Pill>Sunnah {optional}</Pill>
                     <Pill>Quran {e.quran_pages}</Pill>
                     <Pill>Zikr {e.zikr_count}</Pill>
-                    <Pill>Cevsen reading {e.cevsen ? "Yes" : "No"}</Pill>
+                    <Pill>Cevsen {e.cevsen_pages || 0}</Pill>
                     <Pill>Book {e.book_pages}</Pill>
                   </div>
                 </div>

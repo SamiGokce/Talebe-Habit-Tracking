@@ -23,6 +23,7 @@ type Entry = {
   duha: boolean;
   evvabin: boolean;
   cevsen: boolean;
+  cevsen_pages: number;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -88,6 +89,7 @@ export default function PanelStudentPage() {
         acc.quran += e.quran_pages || 0;
         acc.zikr += e.zikr_count || 0;
         acc.book += e.book_pages || 0;
+        acc.cevsen += e.cevsen_pages || 0;
         acc.all5 += e.fajr && e.dhuhr && e.asr && e.maghrib && e.isha ? 1 : 0;
         acc.cemaat += [
           e.fajr_cemaat,
@@ -98,7 +100,7 @@ export default function PanelStudentPage() {
         ].filter(Boolean).length;
         return acc;
       },
-      { quran: 0, zikr: 0, book: 0, all5: 0, cemaat: 0 }
+      { quran: 0, zikr: 0, book: 0, cevsen: 0, all5: 0, cemaat: 0 }
     );
   }, [entries]);
 
@@ -135,12 +137,13 @@ export default function PanelStudentPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 mb-5">
               <Stat icon={<Moon size={14} />} value={totals.all5} label="All 5 days" />
               <Stat icon={<Users size={14} />} value={totals.cemaat} label="Cemaat" />
               <Stat icon={<BookOpen size={14} />} value={totals.quran} label="Quran" />
               <Stat icon={<Sparkles size={14} />} value={totals.zikr} label="Zikr" />
               <Stat icon={<BookOpen size={14} />} value={totals.book} label="Books" />
+              <Stat icon={<BookOpen size={14} />} value={totals.cevsen} label="Cevsen" />
             </div>
 
             <h2 className="font-display text-lg font-semibold text-mocha-700 mb-2 px-1">
@@ -171,7 +174,7 @@ export default function PanelStudentPage() {
                         <Pill>Sunnah {optional}</Pill>
                         <Pill>Quran {e.quran_pages}</Pill>
                         <Pill>Zikr {e.zikr_count}</Pill>
-                        <Pill>Cevsen reading {e.cevsen ? "Yes" : "No"}</Pill>
+                        <Pill>Cevsen {e.cevsen_pages || 0}</Pill>
                         <Pill>Book {e.book_pages}</Pill>
                       </div>
                     </div>

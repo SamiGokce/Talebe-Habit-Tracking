@@ -22,7 +22,7 @@ export async function GET() {
         e.asr, e.asr_cemaat,
         e.maghrib, e.maghrib_cemaat,
         e.isha, e.isha_cemaat,
-        e.tahajjud, e.duha, e.evvabin, e.cevsen,
+        e.tahajjud, e.duha, e.evvabin, e.cevsen, e.cevsen_pages,
         e.quran_pages, e.zikr_count, e.book_pages
       FROM students s
       LEFT JOIN LATERAL (

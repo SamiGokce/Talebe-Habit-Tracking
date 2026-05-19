@@ -33,6 +33,7 @@ function emptyEntry(date: string) {
     duha: false,
     evvabin: false,
     cevsen: false,
+    cevsen_pages: 0,
     quran_pages: 0,
     zikr_count: 0,
     book_pages: 0,
@@ -94,7 +95,6 @@ export async function PUT(req: Request) {
     const v = Number(body[k] ?? 0);
     counts[k] = Number.isFinite(v) && v >= 0 ? Math.min(9999, Math.floor(v)) : 0;
   }
-
   const habitSettings = await getHabitSettings(session.studentId);
   for (const key of disabledHabitKeys(habitSettings)) {
     if (isCountHabit(key)) {
@@ -103,6 +103,7 @@ export async function PUT(req: Request) {
       bools[key] = false;
     }
   }
+  bools.cevsen = Number(counts.cevsen_pages || 0) > 0;
 
   const rows = await sql`
     INSERT INTO entries (
@@ -111,14 +112,14 @@ export async function PUT(req: Request) {
       asr, asr_cemaat, maghrib, maghrib_cemaat,
       isha, isha_cemaat,
       tahajjud, duha, evvabin, cevsen,
-      quran_pages, zikr_count, book_pages
+      cevsen_pages, quran_pages, zikr_count, book_pages
     ) VALUES (
       ${session.studentId}, ${date},
       ${bools.fajr}, ${bools.fajr_cemaat}, ${bools.dhuhr}, ${bools.dhuhr_cemaat},
       ${bools.asr}, ${bools.asr_cemaat}, ${bools.maghrib}, ${bools.maghrib_cemaat},
       ${bools.isha}, ${bools.isha_cemaat},
       ${bools.tahajjud}, ${bools.duha}, ${bools.evvabin}, ${bools.cevsen},
-      ${counts.quran_pages}, ${counts.zikr_count}, ${counts.book_pages}
+      ${counts.cevsen_pages}, ${counts.quran_pages}, ${counts.zikr_count}, ${counts.book_pages}
     )
     ON CONFLICT (student_id, entry_date) DO UPDATE SET
       fajr = EXCLUDED.fajr, fajr_cemaat = EXCLUDED.fajr_cemaat,
@@ -128,6 +129,7 @@ export async function PUT(req: Request) {
       isha = EXCLUDED.isha, isha_cemaat = EXCLUDED.isha_cemaat,
       tahajjud = EXCLUDED.tahajjud, duha = EXCLUDED.duha,
       evvabin = EXCLUDED.evvabin, cevsen = EXCLUDED.cevsen,
+      cevsen_pages = EXCLUDED.cevsen_pages,
       quran_pages = EXCLUDED.quran_pages,
       zikr_count = EXCLUDED.zikr_count,
       book_pages = EXCLUDED.book_pages,

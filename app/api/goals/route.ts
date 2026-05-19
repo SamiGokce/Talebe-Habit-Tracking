@@ -9,10 +9,17 @@ type Access =
   | { role: "mentor"; groupId: string; studentId?: never }
   | { role: "talebe"; groupId: string; studentId: string };
 
-async function getAccess(): Promise<Access | null> {
+async function getAccess(preferStudent = false): Promise<Access | null> {
+  const student = await getStudentSession();
+  if (preferStudent && student) {
+    return {
+      role: "talebe",
+      groupId: student.groupId,
+      studentId: student.studentId,
+    };
+  }
   const leader = await getLeaderSession();
   if (leader) return { role: "mentor", groupId: leader.groupId };
-  const student = await getStudentSession();
   if (student) {
     return {
       role: "talebe",
@@ -29,12 +36,12 @@ function cleanDate(value: unknown): string | null {
 }
 
 export async function GET(req: Request) {
-  const access = await getAccess();
+  const url = new URL(req.url);
+  const access = await getAccess(url.searchParams.get("scope") === "student");
   if (!access) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const url = new URL(req.url);
   const date = url.searchParams.get("date") ?? todayISO();
 
   if (access.role === "talebe") {
@@ -71,12 +78,12 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const access = await getAccess();
+  const body = await req.json();
+  const access = await getAccess(body.scope === "student");
   if (!access) {
     return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   }
 
-  const body = await req.json();
   const title = String(body.title ?? "").trim();
   const description = body.description
     ? String(body.description).trim().slice(0, 240)

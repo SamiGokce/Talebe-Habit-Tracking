@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Shield, Trash2 } from "lucide-react";
+import { Button } from "@/components/Button";
 import { GlassCard } from "@/components/GlassCard";
 
 type Role = "talebe" | "mentor" | "uniteci" | "admin";
@@ -21,6 +22,7 @@ const ROLES: Role[] = ["talebe", "mentor", "uniteci", "admin"];
 export default function AdminUsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +38,7 @@ export default function AdminUsersPage() {
         router.push("/");
         return;
       }
+      setCurrentUserId(meData.account.userId);
 
       const res = await fetch("/api/admin/users");
       const data = await res.json();
@@ -64,6 +67,26 @@ export default function AdminUsersPage() {
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, role } : u))
     );
+  }
+
+  async function deleteUser(user: User) {
+    if (user.id === currentUserId) return;
+    if (!confirm(`Delete ${user.display_name}? Their student data will be removed.`)) {
+      return;
+    }
+
+    setError(null);
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Could not delete user.");
+      return;
+    }
+    setUsers((prev) => prev.filter((item) => item.id !== user.id));
   }
 
   if (loading) {
@@ -109,17 +132,29 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="text-xs text-mocha-400">{u.email}</div>
               </div>
-              <select
-                value={u.role}
-                onChange={(e) => setRole(u.id, e.target.value as Role)}
-                className="glass-soft rounded-2xl px-3 py-2 text-sm text-mocha-700 outline-none"
-              >
-                {ROLES.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2">
+                <select
+                  value={u.role}
+                  onChange={(e) => setRole(u.id, e.target.value as Role)}
+                  className="glass-soft rounded-2xl px-3 py-2 text-sm text-mocha-700 outline-none"
+                >
+                  {ROLES.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() => deleteUser(u)}
+                  disabled={u.id === currentUserId}
+                  className="px-3 py-2 text-sm"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </Button>
+              </div>
             </GlassCard>
           ))}
         </div>

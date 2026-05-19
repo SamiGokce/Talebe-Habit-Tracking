@@ -51,6 +51,7 @@ export type Entry = {
   duha: boolean;
   evvabin: boolean;
   cevsen: boolean;
+  cevsen_pages: number;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -77,10 +78,15 @@ export const PRAYER_KEYS = [
 ] as const;
 export type PrayerKey = (typeof PRAYER_KEYS)[number];
 
-export const OPTIONAL_PRAYER_KEYS = ["tahajjud", "duha", "evvabin", "cevsen"] as const;
+export const OPTIONAL_PRAYER_KEYS = ["tahajjud", "duha", "evvabin"] as const;
 export type OptionalPrayerKey = (typeof OPTIONAL_PRAYER_KEYS)[number];
 
-export const COUNT_KEYS = ["quran_pages", "zikr_count", "book_pages"] as const;
+export const COUNT_KEYS = [
+  "quran_pages",
+  "zikr_count",
+  "book_pages",
+  "cevsen_pages",
+] as const;
 export type CountKey = (typeof COUNT_KEYS)[number];
 
 export type CemaatKey =
@@ -103,7 +109,7 @@ export const MENTOR_TOGGLE_HABIT_KEYS = [
   "tahajjud",
   "duha",
   "evvabin",
-  "cevsen",
+  "cevsen_pages",
   "quran_pages",
   "zikr_count",
   "book_pages",
@@ -123,7 +129,7 @@ export const ALL_HABIT_KEYS: HabitKey[] = [
   "tahajjud",
   "duha",
   "evvabin",
-  "cevsen",
+  "cevsen_pages",
   "quran_pages",
   "zikr_count",
   "book_pages",
@@ -143,7 +149,7 @@ export const HABIT_LABELS: Record<HabitKey, string> = {
   tahajjud: "Tahajjud",
   duha: "Duha",
   evvabin: "Evvabin",
-  cevsen: "Cevsen reading",
+  cevsen_pages: "Cevsen reading (pages)",
   quran_pages: "Quran (pages)",
   zikr_count: "Zikr (count)",
   book_pages: "Book (pages)",
@@ -161,7 +167,6 @@ export const OPTIONAL_PRAYER_LABELS: Record<OptionalPrayerKey, string> = {
   tahajjud: "Tahajjud",
   duha: "Duha",
   evvabin: "Evvabin",
-  cevsen: "Cevsen reading",
 };
 
 export const DEFAULT_SCORING: Record<HabitKey, number> = {
@@ -178,7 +183,7 @@ export const DEFAULT_SCORING: Record<HabitKey, number> = {
   tahajjud: 10,
   duha: 5,
   evvabin: 5,
-  cevsen: 5,
+  cevsen_pages: 1,
   quran_pages: 1,
   zikr_count: 0,
   book_pages: 1,

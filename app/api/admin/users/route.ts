@@ -50,3 +50,33 @@ export async function PATCH(req: Request) {
 
   return NextResponse.json({ ok: true, user: rows[0] });
 }
+
+export async function DELETE(req: Request) {
+  const admin = await requireAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: "Admin only." }, { status: 403 });
+  }
+
+  const { user_id } = await req.json();
+  const userId = String(user_id ?? "");
+  if (!userId) {
+    return NextResponse.json({ error: "User required." }, { status: 400 });
+  }
+  if (userId === admin.userId) {
+    return NextResponse.json(
+      { error: "You cannot delete your own admin account." },
+      { status: 400 }
+    );
+  }
+
+  const rows = await sql`
+    DELETE FROM users
+    WHERE id = ${userId}
+    RETURNING id
+  `;
+  if (rows.length === 0) {
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

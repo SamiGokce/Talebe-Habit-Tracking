@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   display_name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
+  auth_provider TEXT,
+  auth_provider_id TEXT,
   role TEXT NOT NULL DEFAULT 'talebe',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CHECK (role IN ('talebe', 'mentor', 'uniteci', 'admin'))
@@ -41,6 +43,10 @@ ALTER TABLE groups ADD COLUMN IF NOT EXISTS unite_id UUID REFERENCES unites(id) 
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS school_level TEXT NOT NULL DEFAULT 'middle_school';
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS mentor_name TEXT;
 ALTER TABLE groups ADD COLUMN IF NOT EXISTS mentor_user_id UUID REFERENCES users(id) ON DELETE SET NULL;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider_id TEXT;
+CREATE INDEX IF NOT EXISTS users_auth_provider_idx ON users(auth_provider, auth_provider_id);
 
 CREATE INDEX IF NOT EXISTS groups_unite_idx ON groups(unite_id);
 
@@ -81,6 +87,7 @@ CREATE TABLE IF NOT EXISTS entries (
   duha BOOLEAN NOT NULL DEFAULT FALSE,
   evvabin BOOLEAN NOT NULL DEFAULT FALSE,
   cevsen BOOLEAN NOT NULL DEFAULT FALSE,
+  cevsen_pages INTEGER NOT NULL DEFAULT 0,
   quran_pages INTEGER NOT NULL DEFAULT 0,
   zikr_count INTEGER NOT NULL DEFAULT 0,
   book_pages INTEGER NOT NULL DEFAULT 0,
@@ -90,6 +97,7 @@ CREATE TABLE IF NOT EXISTS entries (
 );
 
 ALTER TABLE entries ADD COLUMN IF NOT EXISTS cevsen BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE entries ADD COLUMN IF NOT EXISTS cevsen_pages INTEGER NOT NULL DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS entries_student_date_idx ON entries(student_id, entry_date DESC);
 
@@ -109,13 +117,38 @@ CREATE TABLE IF NOT EXISTS student_habit_settings (
       'tahajjud',
       'duha',
       'evvabin',
-      'cevsen',
+      'cevsen_pages',
       'quran_pages',
       'zikr_count',
       'book_pages'
     )
   )
 );
+
+ALTER TABLE student_habit_settings
+  DROP CONSTRAINT IF EXISTS student_habit_settings_habit_key_check;
+
+UPDATE student_habit_settings
+SET habit_key = 'cevsen_pages'
+WHERE habit_key = 'cevsen';
+
+ALTER TABLE student_habit_settings
+  ADD CONSTRAINT student_habit_settings_habit_key_check CHECK (
+    habit_key IN (
+      'fajr_cemaat',
+      'dhuhr_cemaat',
+      'asr_cemaat',
+      'maghrib_cemaat',
+      'isha_cemaat',
+      'tahajjud',
+      'duha',
+      'evvabin',
+      'cevsen_pages',
+      'quran_pages',
+      'zikr_count',
+      'book_pages'
+    )
+  );
 
 CREATE INDEX IF NOT EXISTS student_habit_settings_student_idx
   ON student_habit_settings(student_id);

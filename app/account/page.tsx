@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, UserRound } from "lucide-react";
+import { ArrowLeft, Apple, Chrome, UserRound } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 
@@ -68,6 +68,12 @@ function AccountForm() {
     router.replace(signedInTarget);
   }
 
+  function oauthHref(provider: "google" | "apple") {
+    return `/api/account/oauth/${provider}/start?next=${encodeURIComponent(
+      signedInTarget
+    )}`;
+  }
+
   if (checking) {
     return (
       <main className="min-h-screen flex items-center justify-center">
@@ -96,6 +102,27 @@ function AccountForm() {
           <p className="text-mocha-500 mt-1 mb-5">
             Use one account before joining or managing groups.
           </p>
+
+          <div className="grid grid-cols-1 gap-2 mb-5">
+            <a
+              href={oauthHref("google")}
+              className="tap glass-soft rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-mocha-700 font-medium"
+            >
+              <Chrome size={18} /> Continue with Google
+            </a>
+            <a
+              href={oauthHref("apple")}
+              className="tap bg-mocha-800 text-cream-50 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 font-medium"
+            >
+              <Apple size={18} /> Continue with Apple
+            </a>
+          </div>
+
+          <div className="flex items-center gap-3 mb-5 text-xs text-mocha-400">
+            <span className="h-px flex-1 bg-cream-300/70" />
+            <span>Email</span>
+            <span className="h-px flex-1 bg-cream-300/70" />
+          </div>
 
           <div className="glass-soft rounded-2xl p-1 mb-5 flex">
             {(["login", "signup"] as const).map((m) => (

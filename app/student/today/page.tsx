@@ -46,6 +46,7 @@ type EntryState = {
   duha: boolean;
   evvabin: boolean;
   cevsen: boolean;
+  cevsen_pages: number;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -101,6 +102,10 @@ export default function TodayPage() {
       const meRes = await fetch("/api/me");
       const meData = await meRes.json();
       if (!meData.student) {
+        if (!meData.account) {
+          router.push("/account?next=/");
+          return;
+        }
         router.push("/student/join");
         return;
       }
@@ -108,7 +113,7 @@ export default function TodayPage() {
 
       const [entryRes, goalsRes] = await Promise.all([
         fetch("/api/entries"),
-        fetch("/api/goals"),
+        fetch("/api/goals?scope=student"),
       ]);
       const entryData = await entryRes.json();
       const goalsData = await goalsRes.json();
@@ -227,7 +232,6 @@ export default function TodayPage() {
         ["tahajjud", entry.tahajjud],
         ["duha", entry.duha],
         ["evvabin", entry.evvabin],
-        ["cevsen", entry.cevsen],
       ] as const
     ).filter(([key, value]) => isHabitEnabled(key) && value).length;
     return { prayers, cemaat, optional };
@@ -369,7 +373,7 @@ export default function TodayPage() {
         {(isHabitEnabled("quran_pages") ||
           isHabitEnabled("zikr_count") ||
           isHabitEnabled("book_pages") ||
-          isHabitEnabled("cevsen")) && (
+          isHabitEnabled("cevsen_pages")) && (
         <Section title="Quran, zikr & reading">
           <div className="flex flex-col gap-2">
             {isHabitEnabled("quran_pages") && (
@@ -402,12 +406,14 @@ export default function TodayPage() {
                 unit="pages"
               />
             )}
-            {isHabitEnabled("cevsen") && (
-              <HabitToggle
+            {isHabitEnabled("cevsen_pages") && (
+              <Stepper
                 label="Cevsen reading"
-                icon={<Book size={16} />}
-                done={entry.cevsen}
-                onToggle={() => set("cevsen", !entry.cevsen)}
+                hint="pages today"
+                value={entry.cevsen_pages}
+                onChange={(n) => set("cevsen_pages", n)}
+                icon={<Book size={18} />}
+                unit="pages"
               />
             )}
           </div>
@@ -557,6 +563,7 @@ function NewPersonalGoalModal({
         kind,
         unit,
         points: 1,
+        scope: "student",
       }),
     });
     const data = await res.json();

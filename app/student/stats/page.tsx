@@ -36,6 +36,7 @@ type Entry = {
   duha: boolean;
   evvabin: boolean;
   cevsen: boolean;
+  cevsen_pages: number;
   quran_pages: number;
   zikr_count: number;
   book_pages: number;
@@ -137,12 +138,14 @@ export default function StatsPage() {
     let pages = 0;
     let zikr = 0;
     let book = 0;
+    let cevsen = 0;
     for (const e of entries) {
       pages += e.quran_pages;
       zikr += e.zikr_count;
       book += e.book_pages;
+      cevsen += e.cevsen_pages || 0;
     }
-    return { pages, zikr, book };
+    return { pages, zikr, book, cevsen };
   }, [entries]);
 
   const last30 = useMemo(() => {
@@ -228,6 +231,13 @@ export default function StatsPage() {
                 icon={<Moon size={16} />}
                 value={totals.book}
                 label="Book pages"
+              />
+            )}
+            {isHabitEnabled("cevsen_pages") && (
+              <BigStat
+                icon={<BookOpen size={16} />}
+                value={totals.cevsen}
+                label="Cevsen pages"
               />
             )}
           </div>

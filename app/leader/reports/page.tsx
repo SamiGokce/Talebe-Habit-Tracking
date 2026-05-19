@@ -27,6 +27,7 @@ type Report = {
     quran_pages: number;
     zikr_count: number;
     book_pages: number;
+    cevsen_pages: number;
   };
   insights: string[];
   trends: {
@@ -120,7 +121,7 @@ export default function LeaderReportsPage() {
           <div className="text-sm font-medium text-mocha-600 mb-3">
             Last 30 days
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
             <BigStat
               icon={<BookOpen size={16} />}
               value={report.totals.quran_pages}
@@ -135,6 +136,11 @@ export default function LeaderReportsPage() {
               icon={<BookOpen size={16} />}
               value={report.totals.book_pages}
               label="Book pages"
+            />
+            <BigStat
+              icon={<BookOpen size={16} />}
+              value={report.totals.cevsen_pages}
+              label="Cevsen pages"
             />
           </div>
         </GlassCard>
