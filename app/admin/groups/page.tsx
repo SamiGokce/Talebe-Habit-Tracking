@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/Button";
 import { GlassCard } from "@/components/GlassCard";
 import { Input } from "@/components/Input";
+import { formatDate } from "@/lib/date-format";
 
 type Group = {
   id: string;
@@ -235,7 +236,7 @@ export default function AdminGroupsPage() {
                   </span>
                   <span className="bg-cream-200/80 rounded-full px-2.5 py-1 text-xs text-mocha-500">
                     {group.last_entry_date
-                      ? `Active ${group.last_entry_date}`
+                      ? `Active ${formatDate(group.last_entry_date)}`
                       : "No entries"}
                   </span>
                   <Link

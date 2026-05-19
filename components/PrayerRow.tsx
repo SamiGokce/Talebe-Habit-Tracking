@@ -8,12 +8,14 @@ export function PrayerRow({
   cemaat,
   onToggleDone,
   onToggleCemaat,
+  showCemaat = true,
 }: {
   label: string;
   done: boolean;
   cemaat: boolean;
   onToggleDone: () => void;
   onToggleCemaat: () => void;
+  showCemaat?: boolean;
 }) {
   return (
     <div
@@ -44,20 +46,22 @@ export function PrayerRow({
           {label}
         </span>
       </button>
-      <button
-        onClick={onToggleCemaat}
-        disabled={!done}
-        className={`tap flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${
-          cemaat
-            ? "bg-mocha-600 text-cream-50"
-            : "bg-cream-200/70 text-mocha-500 disabled:opacity-40"
-        }`}
-        aria-label={`${label} cemaat`}
-        title="Cemaat (congregation)"
-      >
-        <Users size={13} />
-        Cemaat
-      </button>
+      {showCemaat && (
+        <button
+          onClick={onToggleCemaat}
+          disabled={!done}
+          className={`tap flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${
+            cemaat
+              ? "bg-mocha-600 text-cream-50"
+              : "bg-cream-200/70 text-mocha-500 disabled:opacity-40"
+          }`}
+          aria-label={`${label} cemaat`}
+          title="Cemaat (congregation)"
+        >
+          <Users size={13} />
+          Cemaat
+        </button>
+      )}
     </div>
   );
 }

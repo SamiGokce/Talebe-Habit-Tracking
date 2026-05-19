@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, Home, Trophy, Medal } from "lucide-react";
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
+import { formatDateRange } from "@/lib/date-format";
 
 type Contest = {
   id: string;
@@ -97,7 +98,7 @@ export default function ContestDetailPage() {
                 {contest.name}
               </h1>
               <div className="text-xs text-mocha-500">
-                {contest.start_date} → {contest.end_date}
+                {formatDateRange(contest.start_date, contest.end_date)}
               </div>
             </div>
           </div>

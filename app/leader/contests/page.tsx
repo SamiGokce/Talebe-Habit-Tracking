@@ -9,6 +9,7 @@ import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
+import { formatDateRange } from "@/lib/date-format";
 import {
   ALL_HABIT_KEYS,
   DEFAULT_SCORING,
@@ -120,7 +121,7 @@ function Group({ title, items }: { title: string; items: Contest[] }) {
             <div>
               <div className="font-semibold text-mocha-700">{c.name}</div>
               <div className="text-xs text-mocha-500 mt-0.5">
-                {c.start_date} → {c.end_date}
+                {formatDateRange(c.start_date, c.end_date)}
               </div>
             </div>
             <Trophy size={20} className="text-accent-gold" />

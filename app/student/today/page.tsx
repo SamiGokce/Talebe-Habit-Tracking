@@ -24,6 +24,11 @@ import { Stepper } from "@/components/Stepper";
 import { TabBar } from "@/components/TabBar";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
+import { formatDate } from "@/lib/date-format";
+import {
+  MENTOR_TOGGLE_HABIT_KEYS,
+  type MentorToggleHabitKey,
+} from "@/lib/types";
 
 type EntryState = {
   entry_date: string;
@@ -61,6 +66,8 @@ type Me = {
   student: { studentId: string; displayName: string; groupCode: string } | null;
 };
 
+type HabitSettings = Record<MentorToggleHabitKey, boolean>;
+
 const PRAYERS = [
   { key: "fajr", label: "Fajr" },
   { key: "dhuhr", label: "Dhuhr" },
@@ -74,6 +81,11 @@ export default function TodayPage() {
   const [me, setMe] = useState<Me["student"] | null>(null);
   const [entry, setEntry] = useState<EntryState | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [habitSettings, setHabitSettings] = useState<HabitSettings>(() =>
+    Object.fromEntries(
+      MENTOR_TOGGLE_HABIT_KEYS.map((key) => [key, true])
+    ) as HabitSettings
+  );
   const [loading, setLoading] = useState(true);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">(
     "idle"
@@ -101,6 +113,9 @@ export default function TodayPage() {
       const entryData = await entryRes.json();
       const goalsData = await goalsRes.json();
       setEntry(entryData.entry);
+      if (entryData.habitSettings) {
+        setHabitSettings(entryData.habitSettings);
+      }
       setGoals(goalsData.goals || []);
       setLoading(false);
     })();
@@ -181,6 +196,7 @@ export default function TodayPage() {
   const toggleCemaat = (key: (typeof PRAYERS)[number]["key"]) => {
     if (!entry) return;
     const cemaatKey = `${key}_cemaat` as keyof EntryState;
+    if (!isHabitEnabled(cemaatKey as MentorToggleHabitKey)) return;
     const cemaatVal = !entry[cemaatKey];
     setEntry({
       ...entry,
@@ -202,13 +218,24 @@ export default function TodayPage() {
     if (!entry) return { prayers: 0, cemaat: 0, optional: 0 };
     const prayers = PRAYERS.filter((p) => entry[p.key]).length;
     const cemaat = PRAYERS.filter(
-      (p) => entry[`${p.key}_cemaat` as keyof EntryState]
+      (p) =>
+        isHabitEnabled(`${p.key}_cemaat` as MentorToggleHabitKey) &&
+        entry[`${p.key}_cemaat` as keyof EntryState]
     ).length;
-    const optional = [entry.tahajjud, entry.duha, entry.evvabin, entry.cevsen].filter(
-      Boolean
-    ).length;
+    const optional = (
+      [
+        ["tahajjud", entry.tahajjud],
+        ["duha", entry.duha],
+        ["evvabin", entry.evvabin],
+        ["cevsen", entry.cevsen],
+      ] as const
+    ).filter(([key, value]) => isHabitEnabled(key) && value).length;
     return { prayers, cemaat, optional };
-  }, [entry]);
+  }, [entry, habitSettings]);
+
+  function isHabitEnabled(key: MentorToggleHabitKey) {
+    return habitSettings[key] !== false;
+  }
 
   const updateGoal = (id: string, patch: Partial<Goal>) => {
     setGoals((prev) =>
@@ -262,11 +289,7 @@ export default function TodayPage() {
             {me.displayName.split(" ")[0]}
           </h1>
           <div className="mt-1 text-mocha-500 text-sm">
-            {new Date().toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatDate(new Date().toISOString())}
           </div>
         </div>
 
@@ -302,70 +325,94 @@ export default function TodayPage() {
                 cemaat={entry[`${p.key}_cemaat` as keyof EntryState] as boolean}
                 onToggleDone={() => togglePrayer(p.key)}
                 onToggleCemaat={() => toggleCemaat(p.key)}
+                showCemaat={isHabitEnabled(`${p.key}_cemaat` as MentorToggleHabitKey)}
               />
             ))}
           </div>
         </Section>
 
         {/* Optional prayers */}
+        {(isHabitEnabled("tahajjud") ||
+          isHabitEnabled("duha") ||
+          isHabitEnabled("evvabin")) && (
         <Section title="Sunnah & nafl">
-          <div className="grid sm:grid-cols-4 gap-2">
-            <HabitToggle
-              label="Tahajjud"
-              icon={<Moon size={16} />}
-              done={entry.tahajjud}
-              onToggle={() => set("tahajjud", !entry.tahajjud)}
-            />
-            <HabitToggle
-              label="Duha"
-              icon={<Sun size={16} />}
-              done={entry.duha}
-              onToggle={() => set("duha", !entry.duha)}
-            />
-            <HabitToggle
-              label="Evvabin"
-              icon={<Sunrise size={16} />}
-              done={entry.evvabin}
-              onToggle={() => set("evvabin", !entry.evvabin)}
-            />
-            <HabitToggle
-              label="Cevsen"
-              icon={<Sparkles size={16} />}
-              done={entry.cevsen}
-              onToggle={() => set("cevsen", !entry.cevsen)}
-            />
+          <div className="grid sm:grid-cols-3 gap-2">
+            {isHabitEnabled("tahajjud") && (
+              <HabitToggle
+                label="Tahajjud"
+                icon={<Moon size={16} />}
+                done={entry.tahajjud}
+                onToggle={() => set("tahajjud", !entry.tahajjud)}
+              />
+            )}
+            {isHabitEnabled("duha") && (
+              <HabitToggle
+                label="Duha"
+                icon={<Sun size={16} />}
+                done={entry.duha}
+                onToggle={() => set("duha", !entry.duha)}
+              />
+            )}
+            {isHabitEnabled("evvabin") && (
+              <HabitToggle
+                label="Evvabin"
+                icon={<Sunrise size={16} />}
+                done={entry.evvabin}
+                onToggle={() => set("evvabin", !entry.evvabin)}
+              />
+            )}
           </div>
         </Section>
+        )}
 
         {/* Counts */}
+        {(isHabitEnabled("quran_pages") ||
+          isHabitEnabled("zikr_count") ||
+          isHabitEnabled("book_pages") ||
+          isHabitEnabled("cevsen")) && (
         <Section title="Quran, zikr & reading">
           <div className="flex flex-col gap-2">
-            <Stepper
-              label="Quran"
-              hint="pages today"
-              value={entry.quran_pages}
-              onChange={(n) => set("quran_pages", n)}
-              icon={<BookOpen size={18} />}
-              unit="pages"
-            />
-            <Stepper
-              label="Zikr"
-              hint="count"
-              value={entry.zikr_count}
-              onChange={(n) => set("zikr_count", n)}
-              step={10}
-              icon={<Sparkles size={18} />}
-            />
-            <Stepper
-              label="Book reading"
-              hint="pages today"
-              value={entry.book_pages}
-              onChange={(n) => set("book_pages", n)}
-              icon={<Book size={18} />}
-              unit="pages"
-            />
+            {isHabitEnabled("quran_pages") && (
+              <Stepper
+                label="Quran"
+                hint="pages today"
+                value={entry.quran_pages}
+                onChange={(n) => set("quran_pages", n)}
+                icon={<BookOpen size={18} />}
+                unit="pages"
+              />
+            )}
+            {isHabitEnabled("zikr_count") && (
+              <Stepper
+                label="Zikr"
+                hint="count"
+                value={entry.zikr_count}
+                onChange={(n) => set("zikr_count", n)}
+                step={10}
+                icon={<Sparkles size={18} />}
+              />
+            )}
+            {isHabitEnabled("book_pages") && (
+              <Stepper
+                label="Book reading"
+                hint="pages today"
+                value={entry.book_pages}
+                onChange={(n) => set("book_pages", n)}
+                icon={<Book size={18} />}
+                unit="pages"
+              />
+            )}
+            {isHabitEnabled("cevsen") && (
+              <HabitToggle
+                label="Cevsen reading"
+                icon={<Book size={16} />}
+                done={entry.cevsen}
+                onToggle={() => set("cevsen", !entry.cevsen)}
+              />
+            )}
           </div>
         </Section>
+        )}
 
         <Section
           title="Custom goals"

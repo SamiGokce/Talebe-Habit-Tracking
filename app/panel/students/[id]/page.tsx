@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, BookOpen, Moon, Sparkles, Users } from "lucide-react";
 import { GlassCard } from "@/components/GlassCard";
+import { formatDate } from "@/lib/date-format";
 
 type Entry = {
   entry_date: string;
@@ -154,21 +155,23 @@ export default function PanelStudentPage() {
                 {entries.map((e) => {
                   const prayers = [e.fajr, e.dhuhr, e.asr, e.maghrib, e.isha]
                     .filter(Boolean).length;
-                  const optional = [e.tahajjud, e.duha, e.evvabin, e.cevsen]
-                    .filter(Boolean).length;
+                  const optional = [e.tahajjud, e.duha, e.evvabin].filter(
+                    Boolean
+                  ).length;
                   return (
                     <div
                       key={e.entry_date}
                       className="glass rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
                     >
                       <div className="text-sm font-medium text-mocha-700 tabular-nums">
-                        {e.entry_date}
+                        {formatDate(e.entry_date)}
                       </div>
                       <div className="flex flex-wrap gap-2 text-xs text-mocha-500">
                         <Pill>Prayers {prayers}/5</Pill>
                         <Pill>Sunnah {optional}</Pill>
                         <Pill>Quran {e.quran_pages}</Pill>
                         <Pill>Zikr {e.zikr_count}</Pill>
+                        <Pill>Cevsen reading {e.cevsen ? "Yes" : "No"}</Pill>
                         <Pill>Book {e.book_pages}</Pill>
                       </div>
                     </div>
@@ -193,7 +196,7 @@ export default function PanelStudentPage() {
                           {g.title}
                         </div>
                         <div className="text-xs text-mocha-400">
-                          {g.entry_date}
+                          {formatDate(g.entry_date)}
                         </div>
                       </div>
                       <Pill>

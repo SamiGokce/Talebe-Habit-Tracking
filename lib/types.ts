@@ -92,6 +92,23 @@ export type CemaatKey =
 
 export type HabitKey = PrayerKey | OptionalPrayerKey | CountKey | CemaatKey;
 
+export type MentorToggleHabitKey = OptionalPrayerKey | CountKey | CemaatKey;
+
+export const MENTOR_TOGGLE_HABIT_KEYS = [
+  "fajr_cemaat",
+  "dhuhr_cemaat",
+  "asr_cemaat",
+  "maghrib_cemaat",
+  "isha_cemaat",
+  "tahajjud",
+  "duha",
+  "evvabin",
+  "cevsen",
+  "quran_pages",
+  "zikr_count",
+  "book_pages",
+] as const satisfies readonly MentorToggleHabitKey[];
+
 export const ALL_HABIT_KEYS: HabitKey[] = [
   "fajr",
   "fajr_cemaat",
@@ -126,7 +143,7 @@ export const HABIT_LABELS: Record<HabitKey, string> = {
   tahajjud: "Tahajjud",
   duha: "Duha",
   evvabin: "Evvabin",
-  cevsen: "Cevsen",
+  cevsen: "Cevsen reading",
   quran_pages: "Quran (pages)",
   zikr_count: "Zikr (count)",
   book_pages: "Book (pages)",
@@ -144,7 +161,7 @@ export const OPTIONAL_PRAYER_LABELS: Record<OptionalPrayerKey, string> = {
   tahajjud: "Tahajjud",
   duha: "Duha",
   evvabin: "Evvabin",
-  cevsen: "Cevsen",
+  cevsen: "Cevsen reading",
 };
 
 export const DEFAULT_SCORING: Record<HabitKey, number> = {

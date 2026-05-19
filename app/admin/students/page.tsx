@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/GlassCard";
 import { Input } from "@/components/Input";
+import { formatDate } from "@/lib/date-format";
 
 type Student = {
   id: string;
@@ -281,7 +282,7 @@ export default function AdminStudentsPage() {
                     </span>
                     <span className="bg-cream-200/80 rounded-full px-2.5 py-1">
                       {student.last_entry_date
-                        ? `Last ${student.last_entry_date}`
+                        ? `Last ${formatDate(student.last_entry_date)}`
                         : "No entries"}
                     </span>
                     <span className="bg-cream-200/80 rounded-full px-2.5 py-1 inline-flex items-center gap-1">

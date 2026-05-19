@@ -31,14 +31,21 @@ function AccountForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  const signedInTarget = next === "/" ? "/student/today" : next;
 
   useEffect(() => {
     (async () => {
       const res = await fetch("/api/me");
       const data = await res.json();
-      if (data.account) router.push(next);
+      if (data.account) {
+        router.replace(signedInTarget);
+        return;
+      }
+      setChecking(false);
     })();
-  }, [next, router]);
+  }, [router, signedInTarget]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +65,15 @@ function AccountForm() {
       setLoading(false);
       return;
     }
-    router.push(next);
+    router.replace(signedInTarget);
+  }
+
+  if (checking) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-mocha-500 animate-pulse">Loading...</div>
+      </main>
+    );
   }
 
   return (

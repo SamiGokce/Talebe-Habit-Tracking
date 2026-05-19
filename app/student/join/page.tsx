@@ -22,6 +22,10 @@ export default function StudentJoinPage() {
         router.push("/account?next=/student/join");
         return;
       }
+      if (data.student) {
+        router.replace("/student/today");
+        return;
+      }
       setAccountName(data.account.displayName);
     })();
   }, [router]);

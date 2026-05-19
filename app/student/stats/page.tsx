@@ -14,6 +14,11 @@ import {
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
+import { formatDate } from "@/lib/date-format";
+import {
+  MENTOR_TOGGLE_HABIT_KEYS,
+  type MentorToggleHabitKey,
+} from "@/lib/types";
 
 type Entry = {
   entry_date: string;
@@ -35,6 +40,8 @@ type Entry = {
   zikr_count: number;
   book_pages: number;
 };
+
+type HabitSettings = Record<MentorToggleHabitKey, boolean>;
 
 function streakOf(entries: Entry[], pred: (e: Entry) => boolean): {
   current: number;
@@ -85,6 +92,11 @@ export default function StatsPage() {
   const router = useRouter();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [me, setMe] = useState<{ displayName: string } | null>(null);
+  const [habitSettings, setHabitSettings] = useState<HabitSettings>(() =>
+    Object.fromEntries(
+      MENTOR_TOGGLE_HABIT_KEYS.map((key) => [key, true])
+    ) as HabitSettings
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,9 +111,16 @@ export default function StatsPage() {
       const res = await fetch("/api/entries/history?days=60");
       const data = await res.json();
       setEntries(data.entries || []);
+      if (data.habitSettings) {
+        setHabitSettings(data.habitSettings);
+      }
       setLoading(false);
     })();
   }, [router]);
+
+  function isHabitEnabled(key: MentorToggleHabitKey) {
+    return habitSettings[key] !== false;
+  }
 
   const streaks = useMemo(() => {
     const all5 = streakOf(entries, (e) =>
@@ -173,9 +192,15 @@ export default function StatsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <StreakCard label="All 5 prayers" v={streaks.all5} />
             <StreakCard label="Fajr" v={streaks.fajr} />
-            <StreakCard label="Fajr cemaat" v={streaks.fajrCemaat} />
-            <StreakCard label="Tahajjud" v={streaks.tahajjud} />
-            <StreakCard label="Quran daily" v={streaks.quran} />
+            {isHabitEnabled("fajr_cemaat") && (
+              <StreakCard label="Fajr cemaat" v={streaks.fajrCemaat} />
+            )}
+            {isHabitEnabled("tahajjud") && (
+              <StreakCard label="Tahajjud" v={streaks.tahajjud} />
+            )}
+            {isHabitEnabled("quran_pages") && (
+              <StreakCard label="Quran daily" v={streaks.quran} />
+            )}
           </div>
         </GlassCard>
 
@@ -183,22 +208,28 @@ export default function StatsPage() {
           <div className="flex items-center gap-2 text-mocha-500 text-sm mb-3">
             <BookOpen size={16} /> Last 60 days
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <BigStat
-              icon={<BookOpen size={16} />}
-              value={totals.pages}
-              label="Quran pages"
-            />
-            <BigStat
-              icon={<Sparkles size={16} />}
-              value={totals.zikr}
-              label="Zikr count"
-            />
-            <BigStat
-              icon={<Moon size={16} />}
-              value={totals.book}
-              label="Book pages"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            {isHabitEnabled("quran_pages") && (
+              <BigStat
+                icon={<BookOpen size={16} />}
+                value={totals.pages}
+                label="Quran pages"
+              />
+            )}
+            {isHabitEnabled("zikr_count") && (
+              <BigStat
+                icon={<Sparkles size={16} />}
+                value={totals.zikr}
+                label="Zikr count"
+              />
+            )}
+            {isHabitEnabled("book_pages") && (
+              <BigStat
+                icon={<Moon size={16} />}
+                value={totals.book}
+                label="Book pages"
+              />
+            )}
           </div>
         </GlassCard>
 
@@ -239,7 +270,7 @@ export default function StatsPage() {
               return (
                 <div
                   key={iso}
-                  title={`${iso} · ${count}/5 prayers`}
+                  title={`${formatDate(iso)} · ${count}/5 prayers`}
                   className={`aspect-square rounded ${bg}`}
                 />
               );

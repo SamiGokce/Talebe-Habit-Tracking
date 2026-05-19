@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { disabledHabitKeys, getHabitSettings } from "@/lib/habit-settings";
 import { getStudentSession } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -18,5 +19,10 @@ export async function GET(req: Request) {
       AND entry_date >= CURRENT_DATE - (${days}::int - 1)
     ORDER BY entry_date DESC
   `;
-  return NextResponse.json({ entries: rows });
+  const habitSettings = await getHabitSettings(session.studentId);
+  return NextResponse.json({
+    entries: rows,
+    habitSettings,
+    disabledHabitKeys: disabledHabitKeys(habitSettings),
+  });
 }

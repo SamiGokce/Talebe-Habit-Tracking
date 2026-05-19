@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, BookOpen, Sparkles, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/Button";
 import { GlassCard } from "@/components/GlassCard";
+import { formatDate } from "@/lib/date-format";
 
 type Group = {
   id: string;
@@ -160,7 +161,7 @@ export default function PanelGroupPage() {
                         </div>
                         <div className="text-xs text-mocha-400">
                           {student.last_entry_date
-                            ? `Last entry: ${student.last_entry_date}`
+                            ? `Last entry: ${formatDate(student.last_entry_date)}`
                             : "No entries yet"}
                         </div>
                       </div>

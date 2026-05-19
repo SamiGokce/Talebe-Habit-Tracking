@@ -7,6 +7,7 @@ import { Calendar, Home, Trophy } from "lucide-react";
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
+import { formatDateRange } from "@/lib/date-format";
 
 type Contest = {
   id: string;
@@ -108,7 +109,7 @@ function Group({
             <div>
               <div className="font-semibold text-mocha-700">{c.name}</div>
               <div className="text-xs text-mocha-500 mt-0.5">
-                {c.start_date} → {c.end_date}
+                {formatDateRange(c.start_date, c.end_date)}
               </div>
               {c.description && (
                 <div className="text-sm text-mocha-500 mt-1">

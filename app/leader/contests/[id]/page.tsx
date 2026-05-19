@@ -8,6 +8,7 @@ import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
 import { Button } from "@/components/Button";
+import { formatDateRange } from "@/lib/date-format";
 import { HABIT_LABELS, type HabitKey } from "@/lib/types";
 
 type Contest = {
@@ -102,7 +103,7 @@ export default function LeaderContestDetailPage() {
                   {contest.name}
                 </h1>
                 <div className="text-xs text-mocha-500">
-                  {contest.start_date} → {contest.end_date}
+                  {formatDateRange(contest.start_date, contest.end_date)}
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { getStudentSession } from "@/lib/session";
 import { todayISO } from "@/lib/codes";
+import { disabledHabitKeys, getHabitSettings, isCountHabit } from "@/lib/habit-settings";
 import {
   ALL_HABIT_KEYS,
   COUNT_KEYS,
@@ -45,15 +46,27 @@ export async function GET(req: Request) {
   }
   const url = new URL(req.url);
   const date = url.searchParams.get("date") ?? todayISO();
+  const habitSettings = await getHabitSettings(session.studentId);
+  const disabled = disabledHabitKeys(habitSettings);
 
   const rows = await sql`
     SELECT * FROM entries
     WHERE student_id = ${session.studentId} AND entry_date = ${date}
   `;
   if (rows.length === 0) {
-    return NextResponse.json({ entry: emptyEntry(date), persisted: false });
+    return NextResponse.json({
+      entry: emptyEntry(date),
+      persisted: false,
+      habitSettings,
+      disabledHabitKeys: disabled,
+    });
   }
-  return NextResponse.json({ entry: rows[0], persisted: true });
+  return NextResponse.json({
+    entry: rows[0],
+    persisted: true,
+    habitSettings,
+    disabledHabitKeys: disabled,
+  });
 }
 
 export async function PUT(req: Request) {
@@ -80,6 +93,15 @@ export async function PUT(req: Request) {
   for (const k of COUNT_KEYS) {
     const v = Number(body[k] ?? 0);
     counts[k] = Number.isFinite(v) && v >= 0 ? Math.min(9999, Math.floor(v)) : 0;
+  }
+
+  const habitSettings = await getHabitSettings(session.studentId);
+  for (const key of disabledHabitKeys(habitSettings)) {
+    if (isCountHabit(key)) {
+      counts[key] = 0;
+    } else {
+      bools[key] = false;
+    }
   }
 
   const rows = await sql`

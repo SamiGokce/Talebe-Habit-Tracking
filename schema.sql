@@ -93,6 +93,33 @@ ALTER TABLE entries ADD COLUMN IF NOT EXISTS cevsen BOOLEAN NOT NULL DEFAULT FAL
 
 CREATE INDEX IF NOT EXISTS entries_student_date_idx ON entries(student_id, entry_date DESC);
 
+CREATE TABLE IF NOT EXISTS student_habit_settings (
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  habit_key TEXT NOT NULL,
+  enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (student_id, habit_key),
+  CHECK (
+    habit_key IN (
+      'fajr_cemaat',
+      'dhuhr_cemaat',
+      'asr_cemaat',
+      'maghrib_cemaat',
+      'isha_cemaat',
+      'tahajjud',
+      'duha',
+      'evvabin',
+      'cevsen',
+      'quran_pages',
+      'zikr_count',
+      'book_pages'
+    )
+  )
+);
+
+CREATE INDEX IF NOT EXISTS student_habit_settings_student_idx
+  ON student_habit_settings(student_id);
+
 CREATE TABLE IF NOT EXISTS contests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,

@@ -18,6 +18,7 @@ import {
 import { Header } from "@/components/Header";
 import { GlassCard } from "@/components/GlassCard";
 import { TabBar } from "@/components/TabBar";
+import { formatDate } from "@/lib/date-format";
 
 type Member = {
   id: string;
@@ -224,7 +225,7 @@ export default function LeaderDashboardPage() {
                     </div>
                     <div className="text-xs text-mocha-400">
                       {m.last_entry_date
-                        ? `Last entry: ${m.last_entry_date}`
+                        ? `Last entry: ${formatDate(m.last_entry_date)}`
                         : "No entries yet"}
                     </div>
                   </div>
