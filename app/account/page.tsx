@@ -3,7 +3,15 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Apple, Chrome, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  Apple,
+  Chrome,
+  GraduationCap,
+  UserRound,
+  Users,
+  Building2,
+} from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 
@@ -26,6 +34,10 @@ function AccountForm() {
   const search = useSearchParams();
   const next = search.get("next") || "/";
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [signupRole, setSignupRole] = useState<"talebe" | "mentor" | "uniteci">(
+    "talebe"
+  );
+  const [roleCode, setRoleCode] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -56,7 +68,13 @@ function AccountForm() {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          requested_role: signupRole,
+          role_code: roleCode,
+        }),
       }
     );
     const data = await res.json();
@@ -65,13 +83,19 @@ function AccountForm() {
       setLoading(false);
       return;
     }
-    router.replace(signedInTarget);
+    router.replace(data.redirectTo || signedInTarget);
   }
 
   function oauthHref(provider: "google" | "apple") {
-    return `/api/account/oauth/${provider}/start?next=${encodeURIComponent(
-      signedInTarget
-    )}`;
+    const params = new URLSearchParams({
+      next: signedInTarget,
+    });
+    if (mode === "signup") {
+      params.set("requested_role", signupRole);
+      params.set("role_code", roleCode);
+      params.set("email", email);
+    }
+    return `/api/account/oauth/${provider}/start?${params.toString()}`;
   }
 
   if (checking) {
@@ -145,13 +169,69 @@ function AccountForm() {
 
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             {mode === "signup" && (
-              <Input
-                label="Full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="How mentors know you"
-                required
-              />
+              <>
+                <Input
+                  label="Full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="How mentors know you"
+                  required
+                />
+                <div>
+                  <div className="text-sm font-medium text-mocha-600 mb-1.5">
+                    Account type
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      {
+                        value: "talebe",
+                        label: "Student",
+                        icon: <GraduationCap size={16} />,
+                      },
+                      {
+                        value: "mentor",
+                        label: "Mentor",
+                        icon: <Users size={16} />,
+                      },
+                      {
+                        value: "uniteci",
+                        label: "Uniteci",
+                        icon: <Building2 size={16} />,
+                      },
+                    ].map((option) => (
+                      <button
+                        type="button"
+                        key={option.value}
+                        onClick={() => {
+                          setSignupRole(option.value as typeof signupRole);
+                          setError(null);
+                        }}
+                        className={`tap rounded-2xl px-2 py-3 flex flex-col items-center gap-1 text-sm font-medium transition ${
+                          signupRole === option.value
+                            ? "bg-mocha-600 text-cream-50"
+                            : "glass-soft text-mocha-600"
+                        }`}
+                      >
+                        {option.icon}
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {signupRole !== "talebe" && (
+                  <Input
+                    label={
+                      signupRole === "mentor"
+                        ? "Mentor signup code"
+                        : "Uniteci signup code"
+                    }
+                    value={roleCode}
+                    onChange={(e) => setRoleCode(e.target.value)}
+                    placeholder="Enter the in-person code"
+                    required
+                  />
+                )}
+              </>
             )}
             <Input
               label="Email"

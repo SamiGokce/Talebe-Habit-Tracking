@@ -4,6 +4,11 @@ import { sql } from "@/lib/db";
 import { setupErrorResponse } from "@/lib/api-errors";
 import { normalizeName } from "@/lib/codes";
 import { setAccountSession } from "@/lib/session";
+import {
+  roleDestination,
+  signupRoleFrom,
+  validateSignupRole,
+} from "@/lib/signup-roles";
 import type { AppRole } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -12,16 +17,12 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function roleForEmail(email: string): AppRole {
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  return adminEmail && email === adminEmail ? "admin" : "talebe";
-}
-
 export async function POST(req: Request) {
   try {
-    const { email, name, password } = await req.json();
+    const { email, name, password, requested_role, role_code } = await req.json();
     const normalizedEmail = normalizeEmail(String(email ?? ""));
     const displayName = normalizeName(String(name ?? ""));
+    const requestedRole = signupRoleFrom(requested_role);
 
     if (
       !normalizedEmail.includes("@") ||
@@ -39,7 +40,18 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const role = roleForEmail(normalizedEmail);
+    const roleResult = validateSignupRole({
+      email: normalizedEmail,
+      requestedRole,
+      code: role_code,
+    });
+    if (!roleResult.ok) {
+      return NextResponse.json(
+        { error: roleResult.error },
+        { status: roleResult.status }
+      );
+    }
+    const role = roleResult.role;
 
     const rows = await sql`
       INSERT INTO users (email, display_name, password_hash, role)
@@ -60,7 +72,11 @@ export async function POST(req: Request) {
       role: user.role,
     });
 
-    return NextResponse.json({ ok: true, user });
+    return NextResponse.json({
+      ok: true,
+      user,
+      redirectTo: roleDestination(user.role),
+    });
   } catch (err: any) {
     if (String(err?.message || "").includes("duplicate key")) {
       return NextResponse.json(

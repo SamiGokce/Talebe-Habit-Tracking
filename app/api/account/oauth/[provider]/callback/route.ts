@@ -8,6 +8,7 @@ import {
   verifyOAuthIdToken,
 } from "@/lib/oauth";
 import { setAccountSession } from "@/lib/session";
+import { signupRoleFrom } from "@/lib/signup-roles";
 
 export const runtime = "nodejs";
 
@@ -46,7 +47,13 @@ async function handle(req: Request, ctx: Ctx) {
   const jar = await cookies();
   const saved = jar.get("talebe_oauth_state")?.value;
   jar.delete("talebe_oauth_state");
-  const parsed = saved ? (JSON.parse(saved) as { state: string; next: string }) : null;
+  const parsed = saved
+    ? (JSON.parse(saved) as {
+        state: string;
+        next: string;
+        signupRole?: string;
+      })
+    : null;
 
   if (!code || !state || !parsed || parsed.state !== state) {
     return NextResponse.json({ error: "Invalid sign-in state." }, { status: 400 });
@@ -73,11 +80,13 @@ async function handle(req: Request, ctx: Ctx) {
     String(tokenData.id_token),
     config.clientId
   );
+  const role = signupRoleFrom(parsed.signupRole);
   const user = await upsertOAuthUser({
     provider: providerParam,
     providerId: profile.sub,
     email: profile.email,
     displayName: profile.name,
+    role,
   });
 
   await setAccountSession({

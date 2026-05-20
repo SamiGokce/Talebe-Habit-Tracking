@@ -5,6 +5,7 @@ import {
   getOAuthConfig,
   isOAuthProvider,
 } from "@/lib/oauth";
+import { signupRoleFrom, validateSignupRole } from "@/lib/signup-roles";
 
 export const runtime = "nodejs";
 
@@ -26,9 +27,26 @@ export async function GET(req: Request, ctx: Ctx) {
 
   const reqUrl = new URL(req.url);
   const next = reqUrl.searchParams.get("next") || "/student/today";
+  const requestedRole = signupRoleFrom(reqUrl.searchParams.get("requested_role"));
+  const roleCode = reqUrl.searchParams.get("role_code");
+  const email = reqUrl.searchParams.get("email")?.trim().toLowerCase() || "";
+  if (requestedRole !== "talebe") {
+    const roleResult = validateSignupRole({
+      email,
+      requestedRole,
+      code: roleCode,
+    });
+    if (!roleResult.ok) {
+      return NextResponse.json(
+        { error: roleResult.error },
+        { status: roleResult.status }
+      );
+    }
+  }
+
   const state = crypto.randomUUID();
   const jar = await cookies();
-  jar.set("talebe_oauth_state", JSON.stringify({ state, next }), {
+  jar.set("talebe_oauth_state", JSON.stringify({ state, next, signupRole: requestedRole }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

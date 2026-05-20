@@ -88,18 +88,20 @@ export async function upsertOAuthUser({
   providerId,
   email,
   displayName,
+  role = "talebe",
 }: {
   provider: OAuthProvider;
   providerId: string;
   email: string;
   displayName: string;
+  role?: AppRole;
 }) {
   const rows = await sql`
     INSERT INTO users (
       email, display_name, password_hash, role, auth_provider, auth_provider_id
     )
     VALUES (
-      ${email}, ${displayName}, ${`oauth:${provider}:${providerId}`}, 'talebe',
+      ${email}, ${displayName}, ${`oauth:${provider}:${providerId}`}, ${role},
       ${provider}, ${providerId}
     )
     ON CONFLICT (email) DO UPDATE SET
