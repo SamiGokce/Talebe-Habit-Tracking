@@ -23,7 +23,14 @@ export async function POST(req: Request) {
           FROM groups
           WHERE id = ${groupId} AND mentor_user_id = ${account.userId}
         `
-      : ["uniteci", "admin"].includes(account.role)
+      : account.role === "uniteci"
+        ? await sql`
+            SELECT g.id, g.code, g.name, g.school_level, g.mentor_name
+            FROM groups g
+            JOIN unites u ON u.id = g.unite_id
+            WHERE g.id = ${groupId} AND u.uniteci_user_id = ${account.userId}
+          `
+      : account.role === "admin"
         ? await sql`
             SELECT id, code, name, school_level, mentor_name
             FROM groups

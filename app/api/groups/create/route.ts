@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const account = await getAccountSession();
     if (!account || !["uniteci", "admin"].includes(account.role)) {
       return NextResponse.json(
-        { error: "Only unitecis can create groups." },
+        { error: "Only unitecis and admins can create groups." },
         { status: 403 }
       );
     }

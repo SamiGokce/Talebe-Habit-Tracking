@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, BookOpen, Sparkles, Trash2, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Save, Sparkles, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/Button";
 import { GlassCard } from "@/components/GlassCard";
+import { Input } from "@/components/Input";
 import { formatDate } from "@/lib/date-format";
 
 type Group = {
@@ -14,9 +15,22 @@ type Group = {
   name: string;
   school_level: string;
   mentor_name: string | null;
+  mentor_user_id: string | null;
   mentor_account_name: string | null;
   unite_id: string | null;
   unite_name: string | null;
+};
+
+type Mentor = {
+  id: string;
+  display_name: string;
+  email: string;
+  role: string;
+};
+
+type UniteOption = {
+  id: string;
+  name: string;
 };
 
 type Student = {
@@ -38,9 +52,16 @@ export default function PanelGroupPage() {
   const router = useRouter();
   const [group, setGroup] = useState<Group | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [unites, setUnites] = useState<UniteOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [groupName, setGroupName] = useState("");
+  const [mentorName, setMentorName] = useState("");
+  const [mentorUserId, setMentorUserId] = useState("");
+  const [uniteId, setUniteId] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -64,9 +85,56 @@ export default function PanelGroupPage() {
       }
       setGroup(data.group);
       setStudents(data.students || []);
+      setMentors(data.mentors || []);
+      setUnites(data.unites || []);
+      setGroupName(data.group.name || "");
+      setMentorName(data.group.mentor_name || "");
+      setMentorUserId(data.group.mentor_user_id || "");
+      setUniteId(data.group.unite_id || "");
       setLoading(false);
     })();
   }, [params.id, router]);
+
+  async function saveGroup(e: React.FormEvent) {
+    e.preventDefault();
+    if (!group || saving) return;
+
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/panel/groups/${group.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: groupName,
+        mentor_name: mentorName,
+        mentor_user_id: mentorUserId || null,
+        unite_id: uniteId,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Could not save group.");
+      setSaving(false);
+      return;
+    }
+
+    const selectedUnite = unites.find((u) => u.id === uniteId);
+    const selectedMentor = mentors.find((m) => m.id === mentorUserId);
+    setGroup((prev) =>
+      prev
+        ? {
+            ...prev,
+            name: groupName,
+            mentor_name: mentorName || null,
+            mentor_user_id: mentorUserId || null,
+            mentor_account_name: selectedMentor?.display_name || null,
+            unite_id: uniteId || null,
+            unite_name: selectedUnite?.name || null,
+          }
+        : prev
+    );
+    setSaving(false);
+  }
 
   async function deleteGroup() {
     if (!group || deleting) return;
@@ -134,6 +202,70 @@ export default function PanelGroupPage() {
                 {deleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
+
+            <GlassCard className="p-5 mb-5">
+              <div className="flex items-center gap-2 mb-4 text-mocha-700">
+                <Save size={18} />
+                <h2 className="font-display text-xl font-semibold">
+                  Group settings
+                </h2>
+              </div>
+              <form onSubmit={saveGroup} className="grid sm:grid-cols-2 gap-4">
+                <Input
+                  label="Group name"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  required
+                />
+                <div>
+                  <div className="text-sm font-medium text-mocha-600 mb-1.5">
+                    Unite
+                  </div>
+                  <select
+                    value={uniteId}
+                    onChange={(e) => setUniteId(e.target.value)}
+                    className="w-full glass-strong rounded-2xl px-4 py-3 text-base text-mocha-800 outline-none"
+                    required
+                  >
+                    <option value="">Choose unite</option>
+                    {unites.map((unite) => (
+                      <option key={unite.id} value={unite.id}>
+                        {unite.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Input
+                  label="Mentor display name"
+                  value={mentorName}
+                  onChange={(e) => setMentorName(e.target.value)}
+                  placeholder="Shown to members"
+                />
+                <div>
+                  <div className="text-sm font-medium text-mocha-600 mb-1.5">
+                    Mentor account
+                  </div>
+                  <select
+                    value={mentorUserId}
+                    onChange={(e) => setMentorUserId(e.target.value)}
+                    className="w-full glass-strong rounded-2xl px-4 py-3 text-base text-mocha-800 outline-none"
+                  >
+                    <option value="">No mentor account</option>
+                    {mentors.map((mentor) => (
+                      <option key={mentor.id} value={mentor.id}>
+                        {mentor.display_name} ({mentor.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <Button type="submit" disabled={saving}>
+                    <Save size={16} />
+                    {saving ? "Saving..." : "Save changes"}
+                  </Button>
+                </div>
+              </form>
+            </GlassCard>
 
             {students.length === 0 ? (
               <GlassCard className="p-8 text-center text-mocha-500">

@@ -58,7 +58,10 @@ export default function LeaderEntryPage() {
         return;
       }
       setAccount(meData.account);
-      if (meData.leader) {
+      if (
+        meData.leader &&
+        !["uniteci", "admin"].includes(meData.account.role)
+      ) {
         router.push("/leader/dashboard");
         return;
       }
@@ -145,7 +148,7 @@ export default function LeaderEntryPage() {
           </h1>
           <p className="text-mocha-500 mt-1">
             Signed in as {account?.displayName}. Group creation is limited to
-            unitecis.
+            unitecis and admins.
           </p>
         </div>
 

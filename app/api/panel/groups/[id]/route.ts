@@ -27,6 +27,7 @@ export async function GET(_req: Request, ctx: Ctx) {
         g.name,
         g.school_level,
         g.mentor_name,
+        g.mentor_user_id,
         g.unite_id,
         u.name AS unite_name,
         mentor.display_name AS mentor_account_name
@@ -65,7 +66,110 @@ export async function GET(_req: Request, ctx: Ctx) {
       ORDER BY s.display_name ASC
     `;
 
-    return NextResponse.json({ group: groups[0], students });
+    const mentors = await sql`
+      SELECT id, email, display_name, role
+      FROM users
+      WHERE role IN ('mentor', 'uniteci', 'admin')
+      ORDER BY display_name ASC
+    `;
+
+    const unites =
+      account!.role === "admin"
+        ? await sql`
+            SELECT id, name
+            FROM unites
+            ORDER BY name ASC
+          `
+        : await sql`
+            SELECT id, name
+            FROM unites
+            WHERE uniteci_user_id = ${account!.userId}
+            ORDER BY name ASC
+          `;
+
+    return NextResponse.json({ group: groups[0], students, mentors, unites });
+  } catch (err) {
+    const setupError = setupErrorResponse(err);
+    if (setupError) return setupError;
+    console.error(err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request, ctx: Ctx) {
+  try {
+    const account = await getAccountSession();
+    if (!canUsePanel(account)) {
+      return NextResponse.json({ error: "Admin or uniteci only." }, { status: 403 });
+    }
+
+    const { id } = await ctx.params;
+    if (!(await canAccessGroup(account!, id))) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+
+    const { name, mentor_name, mentor_user_id, unite_id } = await req.json();
+    const title = String(name ?? "").trim();
+    const mentorName =
+      typeof mentor_name === "string" && mentor_name.trim()
+        ? mentor_name.trim()
+        : null;
+    const mentorUserId = mentor_user_id ? String(mentor_user_id) : null;
+    const uniteId = unite_id ? String(unite_id) : null;
+
+    if (title.length < 2) {
+      return NextResponse.json(
+        { error: "Group name must be at least 2 characters." },
+        { status: 400 }
+      );
+    }
+    if (!uniteId) {
+      return NextResponse.json({ error: "Unite is required." }, { status: 400 });
+    }
+
+    if (mentorUserId) {
+      const rows = await sql`
+        SELECT id
+        FROM users
+        WHERE id = ${mentorUserId} AND role IN ('mentor', 'uniteci', 'admin')
+      `;
+      if (rows.length === 0) {
+        return NextResponse.json({ error: "Mentor not found." }, { status: 404 });
+      }
+    }
+
+    if (uniteId) {
+      const rows =
+        account!.role === "admin"
+          ? await sql`SELECT id FROM unites WHERE id = ${uniteId}`
+          : await sql`
+              SELECT id
+              FROM unites
+              WHERE id = ${uniteId} AND uniteci_user_id = ${account!.userId}
+            `;
+      if (rows.length === 0) {
+        return NextResponse.json(
+          { error: "You cannot move this group to that unite." },
+          { status: 403 }
+        );
+      }
+    }
+
+    const rows = await sql`
+      UPDATE groups
+      SET
+        name = ${title},
+        mentor_name = ${mentorName},
+        mentor_user_id = ${mentorUserId},
+        unite_id = ${uniteId}
+      WHERE id = ${id}
+      RETURNING id
+    `;
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ ok: true });
   } catch (err) {
     const setupError = setupErrorResponse(err);
     if (setupError) return setupError;

@@ -39,16 +39,20 @@ export function TabBar({
   const extraTabs = useMemo<Tab[]>(() => {
     const role = session?.account?.role;
     const items: Tab[] = [];
-    const hasGroupAccess = Boolean(session?.leader) || role === "mentor";
+    const hasGroupAccess =
+      Boolean(session?.leader) ||
+      role === "mentor" ||
+      role === "uniteci" ||
+      role === "admin";
 
     if (hasGroupAccess) {
       items.push({
-        href: "/leader/dashboard",
+        href: "/leader",
         label: "My group",
         icon: <Users size={16} />,
       });
     }
-    if (role === "uniteci") {
+    if (role === "uniteci" || role === "admin") {
       items.push({
         href: "/panel",
         label: "My unite",
@@ -72,10 +76,11 @@ export function TabBar({
 
   return (
     <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40">
-      <div className="glass-strong rounded-full px-2 py-2 flex items-center gap-1 shadow-glass-lg">
+      <div className="glass-strong rounded-full px-2 py-2 flex items-center gap-1 shadow-glass-lg max-w-[calc(100vw-1rem)] overflow-x-auto">
         {allTabs.map((t) => {
           const active =
             pathname === t.href ||
+            (t.href === "/leader" && pathname.startsWith("/leader/")) ||
             (t.href !== "/student/today" && pathname.startsWith(`${t.href}/`));
           return (
             <Link
